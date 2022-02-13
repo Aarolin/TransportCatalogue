@@ -4,20 +4,39 @@ namespace reading_queries {
 
     using namespace transport_catalogue;
 
-    Queries GetInputQueries() {
+    void FillTransportCatalogue(transport_catalogue::TransportCatalogue& t_catalogue, std::istream& input) {
 
+        Queries queries = GetInputQueries(input);
+        std::vector<AdditionalQuery> add_queries;
+
+        for (const std::string& stop_query : queries.stop_queries) {
+
+            ProcessStopQuery(stop_query, t_catalogue, add_queries);
+
+        }
+
+        ProcessAdditionalQueries(t_catalogue, add_queries);
+
+
+        for (const std::string& route_query : queries.route_queries) {
+
+            ProcessRouteQuery(route_query, t_catalogue);
+        }
+    }
+
+    Queries GetInputQueries(std::istream& input) {
         int queries_count;
-        std::cin >> std::setprecision(6);
-        std::cin >> queries_count;
+        input >> std::setprecision(6);
+        input >> queries_count;
         Queries result;
 
         for (int i = 0; i < queries_count; ++i) {
 
             std::string query;
-            getline(std::cin, query);
+            getline(input, query);
 
             if (query == "") {
-                getline(std::cin, query);
+                getline(input, query);
             }
 
             std::istringstream command(query);
@@ -57,7 +76,7 @@ namespace reading_queries {
 
         }
 
-        t_catalogue.AddStop(q.stop, lat, lng);
+        t_catalogue.AddStop(q.stop, { lat, lng });
         add_queries.push_back({ std::move(q.stop), std::move(distances_to_stop) });
     }
 
@@ -74,7 +93,7 @@ namespace reading_queries {
 
             stop = stop.substr(1);
 
-            if (stop[stop.size() - 1] == ' ') {
+            if (stop.back() == ' ') {
                 DeleteLastSymbolFromWord(stop);
             }
             q.stops.push_back(std::move(stop));
@@ -102,7 +121,7 @@ namespace reading_queries {
 
                 stop_to = stop_to.substr(1);
 
-                catalogue.AddDistanceToOtherStop(std::make_pair(query.from_stop, stop_to), distance);
+                catalogue.SetDistanceBetweenStops(query.from_stop, stop_to, distance);
 
             }
 

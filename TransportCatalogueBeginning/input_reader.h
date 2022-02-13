@@ -40,7 +40,9 @@ namespace reading_queries {
 
     };
 
-    Queries GetInputQueries();
+    void FillTransportCatalogue(transport_catalogue::TransportCatalogue& t_catalogue, std::istream& input);
+
+    Queries GetInputQueries(std::istream& input);
 
     void ProcessStopQuery(const std::string& stop_query, transport_catalogue::TransportCatalogue& t_catalogue, std::vector<AdditionalQuery>& add_queries);
 

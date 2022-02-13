@@ -8,8 +8,11 @@
 
 namespace outing_queries {
 
-	std::vector<std::string> GetOutputQueries();
+	std::vector<std::string> GetOutputQueries(std::istream& input);
 
-	void OutQueries(const std::vector<std::string>& queries, const transport_catalogue::TransportCatalogue& catalogue);
+	void OutQueries(std::istream& input, std::ostream& output, const transport_catalogue::TransportCatalogue& catalogue);
 
+	void OutRouteInformation(std::ostream& output, const std::string& route_name, const transport_catalogue::TransportCatalogue& catalogue);
+
+	void OutStopInformation(std::ostream& output, const std::string& stop_name, const transport_catalogue::TransportCatalogue& catalogue);
 }

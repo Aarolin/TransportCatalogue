@@ -25,6 +25,7 @@ namespace transport_catalogue {
 
     struct Stop {
 
+        std::string stop_name;
         Coordinates coordinates;
 
         bool operator<(const Stop& rhs) const {
@@ -44,8 +45,9 @@ namespace transport_catalogue {
 
     struct Route {
 
-        RouteInformation information;
-        std::deque<Stop*> stops;
+        std::string route_name;
+        RouteType route_type;
+        std::vector<Stop*> stops;
 
     };
 
@@ -69,7 +71,7 @@ namespace transport_catalogue {
 
     public:
 
-        void AddStop(const std::string& stop, double latitude, double longitude);
+        void AddStop(const std::string& stop, Coordinates coordinates);
 
         void AddRoute(const std::string& route, const std::vector<std::string>& stops, RouteType route_type);
 
@@ -77,21 +79,22 @@ namespace transport_catalogue {
 
         const Stop* GetStop(const std::string& stop) const;
 
-        const RouteInformation* GetRouteInformation(const std::string& route) const;
+        std::optional<RouteInformation> GetRouteInformation(const std::string& route) const;
 
-        std::optional<const std::set<std::string>> GetStopInformation(const std::string& stop) const;
+        std::optional<const std::set<std::string_view>> GetStopInformation(const std::string& stop) const;
 
-        void AddDistanceToOtherStop(const std::pair<const std::string&, const std::string&> from_to_pair, size_t distance);
+        void SetDistanceBetweenStops(const std::string& stop_from, const std::string& stop_to, size_t distance);
 
         size_t GetDistanceBetweenStops(Stop* stop_from, Stop* stop_to) const;
 
     private:
 
-        std::unordered_map<std::string, Route> routes_;
-        std::unordered_map<std::string, Stop> stops_;
-        std::unordered_map<const Stop*, std::set<std::string>> stops_to_routes_;
+        std::unordered_map<std::string_view, Route*> routes_;
+        std::unordered_map<std::string_view, Stop*> stops_;
+        std::unordered_map<Stop*, std::set<std::string_view>> stops_to_routes_;
         std::unordered_map<std::pair<Stop*, Stop*>, size_t, StopsHasher> stops_distances_;
-
+        std::deque<Stop> stops_list_;
+        std::deque<Route> route_list_;
     };
 
 
