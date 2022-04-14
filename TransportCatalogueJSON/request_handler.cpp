@@ -1,17 +1,19 @@
-#include "request_handler.h"
+﻿#include "request_handler.h"
 
 using namespace transport_catalogue;
 using namespace std;
 using namespace render;
-using namespace reading_queries;
 
 RequestHandler::RequestHandler(const TransportCatalogue& catalogue, MapRenderer& renderer) : catalogue_(catalogue),
-																							 map_renderer_(renderer) {
+map_renderer_(renderer) {
 
 }
 
 
 void RequestHandler::OutRequests(const json::Dict& map_requests, ostream& output) const {
+
+	//Немного не понял комментарий по поводу реорганизации кода тут.
+	//Что именно выглядит здесь лишним?
 
 	Print(MakeJSONResponseToRequest(map_requests), output);
 
@@ -36,26 +38,26 @@ json::Document RequestHandler::MakeJSONResponseToRequest(const json::Dict& map_r
 		if (type_request == "Map") {
 
 			MakeMapResponse(response);
-			response.insert({ "request_id"s, json::Node(request_id) });
-			all_responses.push_back(json::Node(move(response)));
+			response.insert({ "request_id"s, json::Node{request_id} });
+			all_responses.push_back(json::Node{ move(response) });
 			continue;
 		}
 
 		const string& request_value = map_stat_request.at("name"s).AsString();
 		if (type_request == "Stop"s) {
-			
+
 			ProcessResponseToRequest(MakeStopResponse(request_value), response);
-		} 
+		}
 		else {
 
 			ProcessResponseToRequest(MakeBusResponse(request_value), response);
 		}
 
-		response.insert({ "request_id"s, json::Node(request_id) });
-		all_responses.push_back(json::Node(move(response)));
+		response.insert({ "request_id"s, json::Node{request_id} });
+		all_responses.push_back(json::Node{ move(response) });
 	}
 
-	json::Document doc_result(json::Node(move(all_responses)));
+	json::Document doc_result(json::Node{ move(all_responses) });
 	return doc_result;
 }
 
@@ -78,10 +80,10 @@ optional<json::Dict> RequestHandler::MakeBusResponse(const string& bus_name) con
 	if (route_info.has_value()) {
 
 		const RouteInformation& route = *route_info;
-		result.insert({ "curvature"s, json::Node(route.curvature) });
-		result.insert({ "route_length"s, json::Node(static_cast<int>(route.route_length)) });
-		result.insert({ "stop_count"s, json::Node(static_cast<int>(route.stops_count)) });
-		result.insert({ "unique_stop_count"s, json::Node(static_cast<int>(route.unique_stops_count)) });
+		result.insert({ "curvature"s, json::Node{route.curvature} });
+		result.insert({ "route_length"s, json::Node{static_cast<int>(route.route_length)} });
+		result.insert({ "stop_count"s, json::Node{static_cast<int>(route.stops_count)} });
+		result.insert({ "unique_stop_count"s, json::Node{static_cast<int>(route.unique_stops_count)} });
 		return result;
 
 	}
@@ -100,10 +102,10 @@ optional<json::Dict> RequestHandler::MakeStopResponse(const string& stop_name) c
 		vector<json::Node> buses_list;
 
 		for (const string_view& bus : buses) {
-			buses_list.push_back(json::Node(move(string(bus))));
+			buses_list.push_back(json::Node{ move(string(bus)) });
 		}
 
-		result.insert({ "buses", json::Node(move(buses_list)) });
+		result.insert({ "buses", json::Node{move(buses_list)} });
 
 		return result;
 	}
@@ -114,7 +116,7 @@ optional<json::Dict> RequestHandler::MakeStopResponse(const string& stop_name) c
 
 void RequestHandler::InsertErrorToResponse(json::Dict& response) const {
 
-	response.insert({ "error_message", json::Node("not found"s) });
+	response.insert({ "error_message", json::Node{"not found"s} });
 
 }
 
@@ -125,5 +127,5 @@ void RequestHandler::MakeMapResponse(json::Dict& result) const {
 	const auto& routes_to_draw = catalogue_.GetAllRoutes();
 
 	map_renderer_.RenderMap(map_output, routes_to_draw);
-	result.insert({ "map"s, json::Node(map_output.str()) });
+	result.insert({ "map"s, json::Node{map_output.str()} });
 }

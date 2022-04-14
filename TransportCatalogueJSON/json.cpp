@@ -12,7 +12,7 @@ namespace json {
             Array result;
             if (input.peek() == ']') {
                 input.get();
-                return result;
+                return Node{ move(result) };
             }
 
             for (char c; input >> c && c != ']';) {
@@ -31,7 +31,7 @@ namespace json {
                 throw ParsingError("Failed to parse an array");
             }
 
-            return Node(move(result));
+            return Node{ move(result) };
         }
 
         using Number = std::variant<int, double>;
@@ -137,7 +137,7 @@ namespace json {
             if (c != '\"') {
                 throw ParsingError("Failed to parse string node: "s + line);
             }
-            return Node(move(line));
+            return Node{ move(line) };
         }
 
         Node LoadDict(istream& input) {
@@ -147,7 +147,7 @@ namespace json {
             if (input.peek() == '}') {
 
                 input.get();
-                return result;
+                return Node{ move(result) };
 
             }
 
@@ -169,7 +169,7 @@ namespace json {
                 throw ParsingError("Failed to parse a map");
             }
 
-            return Node(move(result));
+            return Node{ move(result) };
         }
 
         Node LoadBool(istream& input) {
@@ -245,9 +245,9 @@ namespace json {
                 try {
                     Number num = LoadNumber(input);
                     if (holds_alternative<int>(num)) {
-                        return Node(get<int>(num));
+                        return Node{ get<int>(num) };
                     }
-                    return Node(get<double>(num));
+                    return Node{ get<double>(num) };
                 }
                 catch (ParsingError& er) {
                     throw ParsingError(er.what());
@@ -256,99 +256,69 @@ namespace json {
         }
 
     }  // namespace
-
-    Node::Node(nullptr_t ptr)
-        : element_(ptr) {
-
-    }
-    Node::Node(Array array)
-        : element_(move(array)) {
-    }
-
-    Node::Node(Dict map)
-        : element_(move(map)) {
-    }
-
-    Node::Node(int value)
-        : element_(value) {
-    }
-
-    Node::Node(double value)
-        : element_(value) {
-
-    }
-
-    Node::Node(bool value)
-        : element_(value) {
-
-    }
-
-    Node::Node(string value)
-        : element_(move(value)) {
-    }
-
+    
     bool Node::IsNull() const {
-        if (holds_alternative<std::nullptr_t>(element_)) {
+        if (holds_alternative<std::nullptr_t>(*this)) {
             return true;
         }
         return false;
     }
 
     bool Node::IsBool() const {
-        if (holds_alternative<bool>(element_)) {
+        if (holds_alternative<bool>(*this)) {
             return true;
         }
         return false;
     }
 
     bool Node::IsInt() const {
-        if (holds_alternative<int>(element_)) {
+        if (holds_alternative<int>(*this)) {
             return true;
         }
         return false;
     }
 
     bool Node::IsDouble() const {
-        if (holds_alternative<double>(element_) || IsInt()) {
+        if (holds_alternative<double>(*this) || IsInt()) {
             return true;
         }
         return false;
     }
 
     bool Node::IsPureDouble() const {
-        if (holds_alternative<double>(element_)) {
+        if (holds_alternative<double>(*this)) {
             return true;
         }
         return false;
     }
 
     bool Node::IsString() const {
-        if (holds_alternative<std::string>(element_)) {
+        if (holds_alternative<std::string>(*this)) {
             return true;
         }
         return false;
     }
 
     bool Node::IsArray() const {
-        if (holds_alternative<Array>(element_)) {
+        if (holds_alternative<Array>(*this)) {
             return true;
         }
         return false;
     }
 
     bool Node::IsMap() const {
-        if (holds_alternative<Dict>(element_)) {
+        if (holds_alternative<Dict>(*this)) {
             return true;
         }
         return false;
     }
 
     bool Node::operator==(const Node& rhs) const {
-        return rhs.element_ == element_;
+        return  *this == rhs;
     }
 
     bool Node::operator!=(const Node& rhs) const {
-        return !(rhs.element_ == element_);
+        return !(*this == rhs);
     }
 
     const Array& Node::AsArray() const {
@@ -356,7 +326,7 @@ namespace json {
             throw std::logic_error("Node is not an array"s);
         }
 
-        return get<Array>(element_);
+        return get<Array>(*this);
     }
 
     const Dict& Node::AsMap() const {
@@ -364,7 +334,7 @@ namespace json {
             throw std::logic_error("Node is not a map"s);
         }
 
-        return get<Dict>(element_);
+        return get<Dict>(*this);
     }
 
     int Node::AsInt() const {
@@ -372,7 +342,7 @@ namespace json {
             throw std::logic_error("Node is not an int"s);
         }
 
-        return get<int>(element_);
+        return get<int>(*this);
     }
 
     double Node::AsDouble() const {
@@ -380,12 +350,12 @@ namespace json {
             throw std::logic_error("Node is not a double"s);
         }
 
-        if (const auto* value = get_if<int>(&element_)) {
+        if (const auto* value = get_if<int>(this)) {
             const int num = *value;
             return static_cast<double>(num);
         }
 
-        return get<double>(element_);
+        return get<double>(*this);
     }
 
     bool Node::AsBool() const {
@@ -393,7 +363,7 @@ namespace json {
             throw std::logic_error("Node is not a bool"s);
         }
 
-        return get<bool>(element_);
+        return get<bool>(*this);
     }
 
     const string& Node::AsString() const {
@@ -401,7 +371,7 @@ namespace json {
             throw std::logic_error("Node is not a string"s);
         }
 
-        return get<std::string>(element_);
+        return get<std::string>(*this);
     }
 
 
@@ -424,91 +394,14 @@ namespace json {
         return Document{ LoadNode(input) };
     }
 
+    std::ostream& operator<<(ostream& os, const Node& node) {
+
+        std::visit(NodeVisitor{ os }, NodeVariant{node});
+        return os;
+    }
+
     void Print(const Document& doc, std::ostream& output) {
-        const Node& node = doc.GetRoot();
-        if (node.IsInt()) {
-            output << node.AsInt();
-            return;
-        }
-        else if (node.IsDouble()) {
-            output << node.AsDouble();
-            return;
-        }
-        else if (node.IsBool()) {
-            output << std::boolalpha << node.AsBool();
-            return;
-        }
-        else if (node.IsString()) {
-            string line;
-            line += '\"';
-            for (const char c : node.AsString()) {
-                if (c == '\"') {
-                    line += '\\';
-                    line += '\"';
-                    continue;
-                }
-                else if (c == '\n') {
-                    line += '\\';
-                    line += 'n';
-                    continue;
-                }
-                else if (c == '\r') {
-                    line += '\\';
-                    line += 'r';
-                    continue;
-                }
-                else if (c == '\\') {
-                    line += '\\';
-                    line += '\\';
-                    continue;
-                }
-                line += c;
-            }
-            line += '\"';
-            output << line;
-            return;
-        }
-        else if (node.IsArray()) {
-            const Array& arr = node.AsArray();
-            output << "[";
-            size_t arr_size = arr.size();
-            size_t i = 0;
-
-            for (const Node& node : arr) {
-                Print(Document(node), output);
-                if (i != arr_size - 1) {
-                    output << ", ";
-                }
-                ++i;
-            }
-
-            output << "]";
-            return;
-
-        }
-        else if (node.IsMap()) {
-            const Dict& map = node.AsMap();
-            output << "{" << std::endl;
-            size_t map_size = map.size();
-            size_t i = 0;
-
-            for (const auto& [key, value] : map) {
-                output << "    ";
-                output << '\"' << key << '\"' << ": ";
-                Print(Document(value), output);
-                if (i != map_size - 1) {
-                    output << ',' << std::endl;
-                }
-                ++i;
-            }
-
-            output << "}";
-            return;
-        }
-        else {
-            output << "null";
-        }
-
+        output << doc.GetRoot();
     }
 
 }  // namespace json

@@ -2,7 +2,6 @@
 #include "request_handler.h"
 
 #include <iostream>
-#include <cassert>
 
 int main() {
 
