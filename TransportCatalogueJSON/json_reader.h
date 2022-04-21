@@ -1,10 +1,10 @@
 #pragma once
 
+#include "transport_catalogue.h"
 #include "json.h"
-#include "request_handler.h"
 #include "map_renderer.h"
 
-#include <cassert>
+#include <sstream>
 
 namespace reading_queries {
 
@@ -22,4 +22,25 @@ namespace reading_queries {
 
 	render::MapSettings GetMapCustomizer(const json::Dict& requests);
 	
+	class JSONRequestBuilder {
+
+	public:
+
+		JSONRequestBuilder(const transport_catalogue::TransportCatalogue& catalogue, render::MapRenderer& renderer);
+
+		json::Document MakeJSONResponseToRequest(const json::Dict& map_requests);
+
+
+	private:
+
+		json::Dict MakeBusResponse(const std::string& bus_name) const;
+		json::Dict MakeStopResponse(const std::string& stop_name) const;
+		json::Dict MakeMapResponse();
+
+		void InsertErrorToResponse(json::Dict& response) const;
+
+		const transport_catalogue::TransportCatalogue& catalogue_;
+		render::MapRenderer& map_renderer_;
+
+	};
 }

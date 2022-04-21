@@ -5,6 +5,7 @@ namespace reading_queries {
 	using namespace std;
 	using namespace geo;
 	using namespace render;
+	using namespace transport_catalogue;
 
 	json::Document ReadQueries(std::istream& is) {
 		return json::Load(is);
@@ -144,4 +145,116 @@ namespace reading_queries {
 		return render::MapSettings(requests.at("render_settings").AsMap());
 
 	}
+
+	JSONRequestBuilder::JSONRequestBuilder(const TransportCatalogue& catalogue, MapRenderer& renderer) 
+		: catalogue_(catalogue),
+		map_renderer_(renderer) {
+
+	}
+
+	json::Document JSONRequestBuilder::MakeJSONResponseToRequest(const json::Dict& map_requests) {
+
+		const json::Array& stat_requests = map_requests.at("stat_requests"s).AsArray();
+
+		json::Array all_responses;
+		all_responses.reserve(stat_requests.size());
+
+		for (const json::Node& stat_request : stat_requests) {
+
+			const json::Dict& map_stat_request = stat_request.AsMap();
+
+			const string& type_request = map_stat_request.at("type"s).AsString();
+			const int request_id = map_stat_request.at("id"s).AsInt();
+
+			json::Dict response;
+
+			if (type_request == "Map") {
+
+				response = MakeMapResponse();
+			}
+			else {
+
+				const string& request_value = map_stat_request.at("name"s).AsString();
+				if (type_request == "Stop"s) {
+
+					response = MakeStopResponse(request_value);
+				}
+				else {
+
+					response = MakeBusResponse(request_value);
+				}
+
+			}
+
+
+			response.insert({ "request_id"s, json::Node{request_id} });
+			all_responses.push_back(json::Node{ move(response) });
+		}
+
+		json::Document doc_result(json::Node{ move(all_responses) });
+		return doc_result;
+	}
+
+	json::Dict JSONRequestBuilder::MakeBusResponse(const string& bus_name) const {
+
+		const auto route_info = catalogue_.GetRouteInformation(bus_name);
+		json::Dict result;
+
+		if (route_info.has_value()) {
+
+			const RouteInformation& route = *route_info;
+			result.insert({ "curvature"s, json::Node{route.curvature} });
+			result.insert({ "route_length"s, json::Node{static_cast<int>(route.route_length)} });
+			result.insert({ "stop_count"s, json::Node{static_cast<int>(route.stops_count)} });
+			result.insert({ "unique_stop_count"s, json::Node{static_cast<int>(route.unique_stops_count)} });
+			return result;
+
+		}
+
+		InsertErrorToResponse(result);
+		return result;
+	}
+
+	json::Dict JSONRequestBuilder::MakeStopResponse(const string& stop_name) const {
+
+		const auto buses_by_stop = catalogue_.GetStopInformation(stop_name);
+		json::Dict result;
+
+		if (buses_by_stop.has_value()) {
+
+			const auto& buses = *buses_by_stop;
+			vector<json::Node> buses_list;
+
+			for (const string_view& bus : buses) {
+				buses_list.push_back(json::Node{ move(string(bus)) });
+			}
+
+			result.insert({ "buses", json::Node{move(buses_list)} });
+
+			return result;
+		}
+
+		InsertErrorToResponse(result);
+		return result;
+
+	}
+
+	void JSONRequestBuilder::InsertErrorToResponse(json::Dict& response) const {
+
+		response.insert({ "error_message", json::Node{"not found"s} });
+
+	}
+
+	json::Dict JSONRequestBuilder::MakeMapResponse() {
+
+		json::Dict result;
+		ostringstream map_output(""s);
+
+		const auto& routes_to_draw = catalogue_.GetAllRoutes();
+
+		map_renderer_.RenderMap(map_output, routes_to_draw);
+		result.insert({ "map"s, json::Node{map_output.str()} });
+		return result;
+	}
+
 }

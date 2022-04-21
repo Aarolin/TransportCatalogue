@@ -20,7 +20,9 @@ int main() {
 	render::MapProjector projector(customizer.GetWidth(), customizer.GetHeight(), customizer.GetPadding());
 	render::MapRenderer map_renderer(customizer, projector);
 
-	RequestHandler handler(catalogue, map_renderer);
+	JSONRequestBuilder json_doc_builder(catalogue, map_renderer);
+
+	RequestHandler handler(json_doc_builder);
 
 	handler.OutRequests(queries_map, std::cout);
 
