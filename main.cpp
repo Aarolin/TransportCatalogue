@@ -12,7 +12,7 @@ int main() {
 	Document queries = ReadQueries(std::cin);
 	TransportCatalogue catalogue;
 
-	const Dict& queries_map = queries.GetRoot().AsMap();
+	const Dict& queries_map = queries.GetRoot().AsDict();
 
 	ExecuteFillInRequests(catalogue, queries_map);
 

@@ -293,7 +293,7 @@ namespace svg {
 
     class Document : public ObjectContainer {
     public:
-        
+
         void AddPtr(std::unique_ptr<Object>&& obj) override;
 
         // Выводит в ostream svg-представление документа

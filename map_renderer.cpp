@@ -98,7 +98,7 @@ namespace render {
 	void MapSettings::SetUnderlayerColor(const json::Node& underlayer_color) {
 		underlayer_color_ = std::move(GetColorByNode(underlayer_color));
 	}
-	
+
 	const svg::Color& MapSettings::GetUnderlayerColor() const {
 		return underlayer_color_;
 	}
@@ -130,7 +130,7 @@ namespace render {
 		try {
 
 			const std::string& color_name = node_color.AsString();
-			result_color = std::move(color_name);
+			result_color = color_name;
 			return result_color;
 
 		}
@@ -157,8 +157,8 @@ namespace render {
 
 	}
 
-	MapProjector::MapProjector(double width, double height, double padding) : 
-								width_(width), height_(height), padding_(padding) {
+	MapProjector::MapProjector(double width, double height, double padding) :
+		width_(width), height_(height), padding_(padding) {
 
 
 	}
@@ -198,7 +198,7 @@ namespace render {
 		const auto [min_lon, max_lon] = minmax_element(all_stops.begin(), all_stops.end(), [](const Stop* lhs, const Stop* rhs) {
 			return lhs->coordinates.lng < rhs->coordinates.lng;
 			});
-		
+
 		return { (*min_lon)->coordinates.lng, (*max_lon)->coordinates.lng };
 	}
 
@@ -243,7 +243,7 @@ namespace render {
 	}
 
 	double MapProjector::CalcYCoordinate(double latitude) const {
-		
+
 		return (max_lat_ - latitude) * zoom_coef_ + padding_;
 	}
 
@@ -268,7 +268,7 @@ namespace render {
 
 	}
 
-	
+
 	void MapRenderer::RenderRoutes(const map<std::string_view, Route*>& routes_to_render) {
 
 		double line_width = customizer_.GetLineWidth();
@@ -276,7 +276,7 @@ namespace render {
 		auto color = palette.begin();
 
 		for (const auto& [name_route, route] : routes_to_render) {
-			
+
 			if (route->stops.empty()) {
 				continue;
 			}
@@ -296,7 +296,7 @@ namespace render {
 
 		const vector<svg::Color>& palette = customizer_.GetColorPalette();
 		auto color = palette.begin();
-		
+
 		for (const auto& [route_name, route] : routes_to_render) {
 
 			const auto& stops = route->stops;
@@ -422,7 +422,7 @@ namespace render {
 
 		SetGeneralRouteNameSettings(route_text, stop, route_name);
 		route_text.SetFillColor(color);
-		
+
 		return route_text;
 
 	}
@@ -491,7 +491,7 @@ namespace render {
 		double x_coordinate = projector_.CalcXCoordinate(stop->coordinates.lng);
 		double y_coordinate = projector_.CalcYCoordinate(stop->coordinates.lat);
 
-		return svg::Point{x_coordinate, y_coordinate};
+		return svg::Point{ x_coordinate, y_coordinate };
 
 	}
 

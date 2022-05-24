@@ -1,7 +1,7 @@
 #include "domain.h"
 
 bool Stop::operator<(const Stop& rhs) const {
-	return coordinates < rhs.coordinates;
+    return coordinates < rhs.coordinates;
 }
 
 size_t StopsHasher::operator()(std::pair<Stop*, Stop*> stops) const {

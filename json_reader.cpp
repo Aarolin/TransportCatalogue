@@ -31,7 +31,7 @@ namespace reading_queries {
 
 		for (const json::Node& request : base_requests) {
 
-			const json::Dict& base_request = request.AsMap();
+			const json::Dict& base_request = request.AsDict();
 			const string& request_type = base_request.at("type").AsString();
 
 			if (request_type == "Bus") {
@@ -52,13 +52,13 @@ namespace reading_queries {
 		for (const json::Node* stop_request : stop_requests) {
 
 			try {
-				const json::Dict& request = stop_request->AsMap();
+				const json::Dict& request = stop_request->AsDict();
 				const string& stop_name = request.at("name"s).AsString();
 				double latitude = request.at("latitude"s).AsDouble();
 				double longitude = request.at("longitude"s).AsDouble();
 				catalogue.AddStop(stop_name, Coordinates{ latitude, longitude });
 
-				const json::Dict& road_distance = request.at("road_distances"s).AsMap();
+				const json::Dict& road_distance = request.at("road_distances"s).AsDict();
 
 				if (!road_distance.empty()) {
 
@@ -104,7 +104,7 @@ namespace reading_queries {
 		for (const json::Node* bus_request : bus_requests) {
 
 			try {
-				const json::Dict& request = bus_request->AsMap();
+				const json::Dict& request = bus_request->AsDict();
 				const string& bus_name = request.at("name"s).AsString();
 				const json::Array& stops_node = request.at("stops"s).AsArray();
 				vector<string> stops_at_route;
@@ -142,7 +142,7 @@ namespace reading_queries {
 
 	render::MapSettings GetMapCustomizer(const json::Dict& requests) {
 
-		return render::MapSettings(requests.at("render_settings").AsMap());
+		return render::MapSettings(requests.at("render_settings").AsDict());
 
 	}
 
@@ -161,7 +161,7 @@ namespace reading_queries {
 
 		for (const json::Node& stat_request : stat_requests) {
 
-			const json::Dict& map_stat_request = stat_request.AsMap();
+			const json::Dict& map_stat_request = stat_request.AsDict();
 
 			const string& type_request = map_stat_request.at("type"s).AsString();
 			const int request_id = map_stat_request.at("id"s).AsInt();

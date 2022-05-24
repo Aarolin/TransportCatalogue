@@ -55,7 +55,7 @@ namespace render {
 
 	private:
 
-		svg::Color GetColorByNode(const json::Node& node_color) const; 
+		svg::Color GetColorByNode(const json::Node& node_color) const;
 
 		double width_ = 0;
 		double height_ = 0;
@@ -100,8 +100,8 @@ namespace render {
 		double height_ = 0.0;
 		double padding_ = 0.0;
 
-		double min_lon_;
-		double max_lat_;
+		double min_lon_ = 0.0;
+		double max_lat_ = 0.0;
 
 		double zoom_coef_ = 0.0;
 
