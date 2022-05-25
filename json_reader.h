@@ -2,6 +2,7 @@
 
 #include "transport_catalogue.h"
 #include "json.h"
+#include "json_builder.h"
 #include "map_renderer.h"
 
 #include <sstream>
@@ -33,11 +34,11 @@ namespace reading_queries {
 
 	private:
 
-		json::Dict MakeBusResponse(const std::string& bus_name) const;
-		json::Dict MakeStopResponse(const std::string& stop_name) const;
-		json::Dict MakeMapResponse();
+		void MakeBusResponse(const std::string& bus_name, json::Builder& answer_builder) const;
+		void MakeStopResponse(const std::string& stop_name, json::Builder& answer_builder) const;
+		void MakeMapResponse(json::Builder& answer_builder);
 
-		void InsertErrorToResponse(json::Dict& response) const;
+		void InsertErrorToResponse(json::Builder& answer_builder) const;
 
 		const transport_catalogue::TransportCatalogue& catalogue_;
 		render::MapRenderer& map_renderer_;

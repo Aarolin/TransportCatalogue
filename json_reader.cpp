@@ -156,8 +156,8 @@ namespace reading_queries {
 
 		const json::Array& stat_requests = map_requests.at("stat_requests"s).AsArray();
 
-		json::Array all_responses;
-		all_responses.reserve(stat_requests.size());
+		json::Builder answer_builder;
+		answer_builder.StartArray();
 
 		for (const json::Node& stat_request : stat_requests) {
 
@@ -166,59 +166,53 @@ namespace reading_queries {
 			const string& type_request = map_stat_request.at("type"s).AsString();
 			const int request_id = map_stat_request.at("id"s).AsInt();
 
-			json::Dict response;
+			answer_builder.StartDict();
 
 			if (type_request == "Map") {
-
-				response = MakeMapResponse();
+				MakeMapResponse(answer_builder);
 			}
 			else {
 
 				const string& request_value = map_stat_request.at("name"s).AsString();
-				if (type_request == "Stop"s) {
 
-					response = MakeStopResponse(request_value);
+				if (type_request == "Stop"s) {
+					MakeStopResponse(request_value, answer_builder);
 				}
 				else {
-
-					response = MakeBusResponse(request_value);
+					MakeBusResponse(request_value, answer_builder);
 				}
 
 			}
 
+			answer_builder.Key("request_id"s).Value(request_id);
+			answer_builder.EndDict();
 
-			response.insert({ "request_id"s, json::Node{request_id} });
-			all_responses.push_back(json::Node{ move(response) });
 		}
 
-		json::Document doc_result(json::Node{ move(all_responses) });
-		return doc_result;
+		answer_builder.EndArray();
+		return json::Document{answer_builder.Build()};
 	}
 
-	json::Dict JSONRequestBuilder::MakeBusResponse(const string& bus_name) const {
+	void JSONRequestBuilder::MakeBusResponse(const string& bus_name, json::Builder& answer_builder) const {
 
 		const auto route_info = catalogue_.GetRouteInformation(bus_name);
-		json::Dict result;
 
 		if (route_info.has_value()) {
 
 			const RouteInformation& route = *route_info;
-			result.insert({ "curvature"s, json::Node{route.curvature} });
-			result.insert({ "route_length"s, json::Node{static_cast<int>(route.route_length)} });
-			result.insert({ "stop_count"s, json::Node{static_cast<int>(route.stops_count)} });
-			result.insert({ "unique_stop_count"s, json::Node{static_cast<int>(route.unique_stops_count)} });
-			return result;
-
+			answer_builder.Key("curvature"s).Value(route.curvature);
+			answer_builder.Key("route_length"s).Value(static_cast<int>(route.route_length));
+			answer_builder.Key("stop_count"s).Value(static_cast<int>(route.stops_count));
+			answer_builder.Key("unique_stop_count"s).Value(static_cast<int>(route.unique_stops_count));
+			return;
 		}
 
-		InsertErrorToResponse(result);
-		return result;
+		InsertErrorToResponse(answer_builder);
 	}
 
-	json::Dict JSONRequestBuilder::MakeStopResponse(const string& stop_name) const {
+	void JSONRequestBuilder::MakeStopResponse(const string& stop_name, json::Builder& answer_builder) const {
 
 		const auto buses_by_stop = catalogue_.GetStopInformation(stop_name);
-		json::Dict result;
 
 		if (buses_by_stop.has_value()) {
 
@@ -229,32 +223,27 @@ namespace reading_queries {
 				buses_list.push_back(json::Node{ move(string(bus)) });
 			}
 
-			result.insert({ "buses", json::Node{move(buses_list)} });
-
-			return result;
+			answer_builder.Key("buses"s).Value(move(buses_list));
+			return;
 		}
 
-		InsertErrorToResponse(result);
-		return result;
+		InsertErrorToResponse(answer_builder);
 
 	}
 
-	void JSONRequestBuilder::InsertErrorToResponse(json::Dict& response) const {
+	void JSONRequestBuilder::InsertErrorToResponse(json::Builder& answer_builder) const {
 
-		response.insert({ "error_message", json::Node{"not found"s} });
-
+		answer_builder.Key("error_message"s).Value("not found"s);
 	}
 
-	json::Dict JSONRequestBuilder::MakeMapResponse() {
+	void JSONRequestBuilder::MakeMapResponse(json::Builder& answer_builder) {
 
-		json::Dict result;
 		ostringstream map_output(""s);
 
 		const auto& routes_to_draw = catalogue_.GetAllRoutes();
 
 		map_renderer_.RenderMap(map_output, routes_to_draw);
-		result.insert({ "map"s, json::Node{map_output.str()} });
-		return result;
+		answer_builder.Key("map"s).Value(map_output.str());
 	}
 
 }
