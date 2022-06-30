@@ -252,14 +252,14 @@ namespace render {
 
 	}
 
-	void MapRenderer::RenderMap(ostream& output, const map<std::string_view, Route*>& routes_to_render) {
+	void MapRenderer::RenderMap(ostream& output, const map<std::string_view, Bus*>& buses_to_render) {
 
-		projector_.CalcCoeficients(GetAllStopList(routes_to_render));
+		projector_.CalcCoeficients(GetAllStopList(buses_to_render));
 
-		RenderRoutes(routes_to_render);
-		RenderRoutesNames(routes_to_render);
+		RenderBusLines(buses_to_render);
+		RenderBusNames(buses_to_render);
 
-		map<string_view, const Stop*> all_stops_map = GetAllStopMap(routes_to_render);
+		map<string_view, const Stop*> all_stops_map = GetAllStopMap(buses_to_render);
 
 		RenderStopsCircles(all_stops_map);
 		RenderStopsNames(all_stops_map);
@@ -269,19 +269,19 @@ namespace render {
 	}
 
 
-	void MapRenderer::RenderRoutes(const map<std::string_view, Route*>& routes_to_render) {
+	void MapRenderer::RenderBusLines(const map<std::string_view, Bus*>& buses_to_render) {
 
 		double line_width = customizer_.GetLineWidth();
 		const vector<svg::Color>& palette = customizer_.GetColorPalette();
 		auto color = palette.begin();
 
-		for (const auto& [name_route, route] : routes_to_render) {
+		for (const auto& [name_route, route] : buses_to_render) {
 
 			if (route->stops.empty()) {
 				continue;
 			}
 
-			draw_doc_.Add(move(CreateRouteLine(*route, *color, line_width)));
+			draw_doc_.Add(move(CreateBusLine(*route, *color, line_width)));
 
 			color = next(color);
 			if (color == palette.end()) {
@@ -292,12 +292,12 @@ namespace render {
 
 	}
 
-	void MapRenderer::RenderRoutesNames(const map<std::string_view, Route*>& routes_to_render) {
+	void MapRenderer::RenderBusNames(const map<std::string_view, Bus*>& buses_to_render) {
 
 		const vector<svg::Color>& palette = customizer_.GetColorPalette();
 		auto color = palette.begin();
 
-		for (const auto& [route_name, route] : routes_to_render) {
+		for (const auto& [bus_name, route] : buses_to_render) {
 
 			const auto& stops = route->stops;
 
@@ -308,8 +308,8 @@ namespace render {
 			const Stop* starting_stop = stops.front();
 			const Stop* final_stop = stops.back();
 
-			draw_doc_.Add(move(CreateRouteUnderlayer(starting_stop, route_name)));
-			draw_doc_.Add(move(CreateRouteName(starting_stop, *color, route_name)));
+			draw_doc_.Add(move(CreateBusUnderlayer(starting_stop, bus_name)));
+			draw_doc_.Add(move(CreateBusName(starting_stop, *color, bus_name)));
 
 			if (starting_stop == final_stop) {
 				color = next(color);
@@ -319,8 +319,8 @@ namespace render {
 				continue;
 			}
 
-			draw_doc_.Add(move(CreateRouteUnderlayer(final_stop, route_name)));
-			draw_doc_.Add(move(CreateRouteName(final_stop, *color, route_name)));
+			draw_doc_.Add(move(CreateBusUnderlayer(final_stop, bus_name)));
+			draw_doc_.Add(move(CreateBusName(final_stop, *color, bus_name)));
 
 			color = next(color);
 			if (color == palette.end()) {
@@ -350,22 +350,22 @@ namespace render {
 
 	}
 
-	svg::Polyline MapRenderer::CreateRouteLine(const Route& route, const svg::Color& line_color, double line_width) const {
+	svg::Polyline MapRenderer::CreateBusLine(const Bus& route, const svg::Color& line_color, double line_width) const {
 
 		svg::Polyline route_line;
-		SetRouteLineProperties(route_line, line_color, line_width);
+		SetBusLineProperties(route_line, line_color, line_width);
 
-		if (route.route_type == RouteType::Forward) {
-			BuildForwardRoute(route_line, route.stops);
+		if (route.route_type == BusType::Forward) {
+			BuildForwardBus(route_line, route.stops);
 		}
 		else {
-			BuildCircleRoute(route_line, route.stops);
+			BuildCircleBus(route_line, route.stops);
 		}
 
 		return route_line;
 	}
 
-	void MapRenderer::SetRouteLineProperties(svg::Polyline& route_line, const svg::Color& color, double line_width) const {
+	void MapRenderer::SetBusLineProperties(svg::Polyline& route_line, const svg::Color& color, double line_width) const {
 
 		route_line.SetStrokeWidth(line_width);
 		route_line.SetStrokeColor(color);
@@ -375,7 +375,7 @@ namespace render {
 
 	}
 
-	void MapRenderer::BuildDirectRoute(svg::Polyline& route_line, const vector<Stop*>& stops) const {
+	void MapRenderer::BuildDirectBus(svg::Polyline& route_line, const vector<Stop*>& stops) const {
 
 		for (const Stop* stop : stops) {
 
@@ -385,9 +385,9 @@ namespace render {
 
 	}
 
-	void MapRenderer::BuildForwardRoute(svg::Polyline& route_line, const vector<Stop*>& stops) const {
+	void MapRenderer::BuildForwardBus(svg::Polyline& route_line, const vector<Stop*>& stops) const {
 
-		BuildDirectRoute(route_line, stops);
+		BuildDirectBus(route_line, stops);
 
 		size_t i = 0;
 		for (auto iter = stops.rbegin(); iter != stops.rend(); ++iter) {
@@ -400,41 +400,41 @@ namespace render {
 
 	}
 
-	void MapRenderer::BuildCircleRoute(svg::Polyline& route_line, const vector<Stop*>& stops) const {
+	void MapRenderer::BuildCircleBus(svg::Polyline& route_line, const vector<Stop*>& stops) const {
 
-		BuildDirectRoute(route_line, stops);
+		BuildDirectBus(route_line, stops);
 	}
 
-	svg::Text MapRenderer::CreateRouteUnderlayer(const Stop* stop, string_view route_name) const {
+	svg::Text MapRenderer::CreateBusUnderlayer(const Stop* stop, string_view bus_name) const {
 
 		svg::Text route_underlayer;
 
-		SetGeneralRouteNameSettings(route_underlayer, stop, route_name);
+		SetGeneralBusNameSettings(route_underlayer, stop, bus_name);
 		SetAdditionalUnderlayerSettings(route_underlayer);
 
 		return route_underlayer;
 
 	}
 
-	svg::Text MapRenderer::CreateRouteName(const Stop* stop, const svg::Color& color, string_view route_name) const {
+	svg::Text MapRenderer::CreateBusName(const Stop* stop, const svg::Color& color, string_view bus_name) const {
 
 		svg::Text route_text;
 
-		SetGeneralRouteNameSettings(route_text, stop, route_name);
+		SetGeneralBusNameSettings(route_text, stop, bus_name);
 		route_text.SetFillColor(color);
 
 		return route_text;
 
 	}
 
-	void MapRenderer::SetGeneralRouteNameSettings(svg::Text& text_element, const Stop* stop, string_view route_name) const {
+	void MapRenderer::SetGeneralBusNameSettings(svg::Text& text_element, const Stop* stop, string_view bus_name) const {
 
 		text_element.SetPosition(GetStopCoordinates(stop));
 		text_element.SetOffset(customizer_.GetBusLabelOffset());
 		text_element.SetFontSize(customizer_.GetBusLabelFontSize());
 		text_element.SetFontFamily("Verdana"s);
 		text_element.SetFontWeight("bold"s);
-		text_element.SetData(string(route_name.begin(), route_name.end()));
+		text_element.SetData(string(bus_name.begin(), bus_name.end()));
 
 	}
 
@@ -496,11 +496,11 @@ namespace render {
 	}
 
 
-	map<string_view, const Stop*> MapRenderer::GetAllStopMap(const map<string_view, Route*>& routes_to_render) const {
+	map<string_view, const Stop*> MapRenderer::GetAllStopMap(const map<string_view, Bus*>& buses_to_render) const {
 
 		map<string_view, const Stop*> all_stops;
 
-		for (const auto& [route_name, route] : routes_to_render) {
+		for (const auto& [bus_name, route] : buses_to_render) {
 
 			for (const Stop* stop : route->stops) {
 
@@ -514,11 +514,11 @@ namespace render {
 		return all_stops;
 	}
 
-	deque<const Stop*> MapRenderer::GetAllStopList(const map<string_view, Route*>& routes_to_render) const {
+	deque<const Stop*> MapRenderer::GetAllStopList(const map<string_view, Bus*>& buses_to_render) const {
 
 		deque<const Stop*> all_stops;
 
-		for (const auto& [route_name, route] : routes_to_render) {
+		for (const auto& [bus_name, route] : buses_to_render) {
 
 			for (const Stop* stop : route->stops) {
 				all_stops.push_back(stop);

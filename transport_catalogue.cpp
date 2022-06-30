@@ -9,35 +9,35 @@ namespace transport_catalogue {
         stops_list_.push_back({ stop, std::move(coordinates) });
         auto& last_stop = stops_list_.back();
         stops_.insert({ last_stop.stop_name, &last_stop });
-        stops_to_routes_.insert({ &last_stop, {} });
+        stops_to_buses_.insert({ &last_stop, {} });
 
     }
 
-    void TransportCatalogue::AddRoute(const std::string& route, const std::vector<std::string>& stops, RouteType route_type) {
+    void TransportCatalogue::AddBus(const std::string& bus, const std::vector<std::string>& stops, BusType route_type) {
 
-        std::vector<Stop*> route_stops;
+        std::vector<Stop*> bus_stops;
 
         for (const std::string& stop : stops) {
-            route_stops.push_back(stops_.at(stop));
+            bus_stops.push_back(stops_.at(stop));
         }
 
-        route_list_.push_back({ route, route_type, std::move(route_stops) });
-        auto& last_route = route_list_.back();
-        routes_.insert({ last_route.route_name, &last_route });
+        bus_list_.push_back({ bus, route_type, std::move(bus_stops) });
+        auto& last_bus = bus_list_.back();
+        buses_.insert({ last_bus.bus_name, &last_bus });
 
-        for (auto stop : last_route.stops) {
-            stops_to_routes_.at(stop).insert(last_route.route_name);
+        for (auto stop : last_bus.stops) {
+            stops_to_buses_.at(stop).insert(last_bus.bus_name);
         }
 
     }
 
-    const Route* TransportCatalogue::GetRoute(const std::string& route) const {
+    const Bus* TransportCatalogue::GetBus(const std::string& bus) const {
 
-        if (routes_.count(route) == 0) {
+        if (buses_.count(bus) == 0) {
             return nullptr;
         }
 
-        return static_cast<const Route*>(routes_.at(route));
+        return static_cast<const Bus*>(buses_.at(bus));
     }
 
     const Stop* TransportCatalogue::GetStop(const std::string& stop) const {
@@ -49,17 +49,17 @@ namespace transport_catalogue {
         return static_cast<const Stop*>(stops_.at(stop));
     }
 
-    std::optional<RouteInformation> TransportCatalogue::GetRouteInformation(const std::string& route) const {
+    std::optional<BusInformation> TransportCatalogue::GetBusInformation(const std::string& route) const {
 
-        if (routes_.count(route) == 0) {
+        if (buses_.count(route) == 0) {
             return std::nullopt;
         }
 
-        Route* finded_route = routes_.at(route);
+        Bus* finded_route = buses_.at(route);
         size_t stops_count = finded_route->stops.size();
 
         if (stops_count == 0) {
-            return RouteInformation{ stops_count, 0, 0, 0.0 };
+            return BusInformation{ stops_count, 0, 0, 0.0 };
         }
 
 
@@ -75,7 +75,7 @@ namespace transport_catalogue {
 
         }
 
-        if (finded_route->route_type == RouteType::Forward) {
+        if (finded_route->route_type == BusType::Forward) {
 
             for (size_t i = stops_count - 1; i > 0; --i) {
                 route_length += GetDistanceBetweenStops(route_stops[i], route_stops[i - 1]);
@@ -93,7 +93,7 @@ namespace transport_catalogue {
         double curvature = route_length / geographical_distance;
 
 
-        return  RouteInformation{ stops_count, unique_stops_count, route_length, curvature };
+        return  BusInformation{ stops_count, unique_stops_count, route_length, curvature };
 
     }
 
@@ -104,7 +104,7 @@ namespace transport_catalogue {
         }
 
         Stop* searched_stop = stops_.at(stop);
-        return stops_to_routes_.at(searched_stop);
+        return stops_to_buses_.at(searched_stop);
 
     }
 
@@ -137,9 +137,9 @@ namespace transport_catalogue {
 
     }
 
-    const std::map<std::string_view, Route*>& TransportCatalogue::GetAllRoutes() const {
+    const std::map<std::string_view, Bus*>& TransportCatalogue::GetAllBuses() const {
 
-        return routes_;
+        return buses_;
     }
 
 }

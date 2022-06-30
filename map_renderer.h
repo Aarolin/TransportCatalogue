@@ -112,28 +112,28 @@ namespace render {
 
 		MapRenderer(const MapSettings& customizer, MapProjector& projector);
 
-		void RenderMap(std::ostream& output, const std::map<std::string_view, Route*>& routes_to_render);
+		void RenderMap(std::ostream& output, const std::map<std::string_view, Bus*>& routes_to_render);
 
 	private:
 
-		void RenderRoutes(const std::map<std::string_view, Route*>& routes_to_render);
-		void RenderRoutesNames(const std::map<std::string_view, Route*>& routes_to_render);
+		void RenderBusLines(const std::map<std::string_view, Bus*>& buses_to_render);
+		void RenderBusNames(const std::map<std::string_view, Bus*>& buses_to_render);
 		void RenderStopsCircles(const std::map<std::string_view, const Stop*>& all_stops);
 		void RenderStopsNames(const std::map<std::string_view, const Stop*>& all_stops);
 
-		svg::Polyline CreateRouteLine(const Route& route, const svg::Color& line_color, double line_width) const;
+		svg::Polyline CreateBusLine(const Bus& bus, const svg::Color& line_color, double line_width) const;
 
-		void SetRouteLineProperties(svg::Polyline& route_line, const svg::Color& color, double line_width) const;
+		void SetBusLineProperties(svg::Polyline& bus_line, const svg::Color& color, double line_width) const;
 
-		void BuildDirectRoute(svg::Polyline& route_line, const std::vector<Stop*>& stops) const;
+		void BuildDirectBus(svg::Polyline& bus_line, const std::vector<Stop*>& stops) const;
 
-		void BuildForwardRoute(svg::Polyline& route_line, const std::vector<Stop*>& stops) const;
-		void BuildCircleRoute(svg::Polyline& route_line, const std::vector<Stop*>& stops) const;
+		void BuildForwardBus(svg::Polyline& bus_line, const std::vector<Stop*>& stops) const;
+		void BuildCircleBus(svg::Polyline& bus_line, const std::vector<Stop*>& stops) const;
 
-		svg::Text CreateRouteUnderlayer(const Stop* stop, std::string_view route_name) const;
-		svg::Text CreateRouteName(const Stop* stop, const svg::Color& color, std::string_view route_name) const;
+		svg::Text CreateBusUnderlayer(const Stop* stop, std::string_view bus_name) const;
+		svg::Text CreateBusName(const Stop* stop, const svg::Color& color, std::string_view bus_name) const;
 
-		void SetGeneralRouteNameSettings(svg::Text& text_element, const Stop* stop, std::string_view route_name) const;
+		void SetGeneralBusNameSettings(svg::Text& text_element, const Stop* stop, std::string_view bus_name) const;
 		void SetAdditionalUnderlayerSettings(svg::Text& text_element) const;
 
 		svg::Circle CreateStopCircle(const Stop* stop, double stop_radius) const;
@@ -145,8 +145,8 @@ namespace render {
 
 		svg::Point GetStopCoordinates(const Stop* stop) const;
 
-		std::map<std::string_view, const Stop*> GetAllStopMap(const std::map<std::string_view, Route*>& routes_to_render) const;
-		std::deque<const Stop*> GetAllStopList(const std::map<std::string_view, Route*>& routes_to_render) const;
+		std::map<std::string_view, const Stop*> GetAllStopMap(const std::map<std::string_view, Bus*>& buses_to_render) const;
+		std::deque<const Stop*> GetAllStopList(const std::map<std::string_view, Bus*>& buses_to_render) const;
 
 		const MapSettings& customizer_;
 		MapProjector& projector_;

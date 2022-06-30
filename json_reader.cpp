@@ -118,9 +118,9 @@ namespace reading_queries {
 
 				bool is_roundtrip = request.at("is_roundtrip"s).AsBool();
 				
-				RouteType route_type = is_roundtrip ? RouteType::Circle : RouteType::Forward;
+				BusType route_type = is_roundtrip ? BusType::Circle : BusType::Forward;
 
-				catalogue.AddRoute(bus_name, stops_at_route, route_type);
+				catalogue.AddBus(bus_name, stops_at_route, route_type);
 
 			}
 			catch (json::ParsingError& rt_error) {
@@ -195,11 +195,11 @@ namespace reading_queries {
 
 	void JSONRequestBuilder::MakeBusResponse(const string& bus_name, json::Builder& answer_builder) const {
 
-		const auto route_info = catalogue_.GetRouteInformation(bus_name);
+		const auto bus_info = catalogue_.GetBusInformation(bus_name);
 
-		if (route_info.has_value()) {
+		if (bus_info.has_value()) {
 
-			const RouteInformation& route = *route_info;
+			const BusInformation& route = *bus_info;
 			answer_builder.Key("curvature"s).Value(route.curvature);
 			answer_builder.Key("route_length"s).Value(static_cast<int>(route.route_length));
 			answer_builder.Key("stop_count"s).Value(static_cast<int>(route.stops_count));
@@ -240,7 +240,7 @@ namespace reading_queries {
 
 		ostringstream map_output(""s);
 
-		const auto& routes_to_draw = catalogue_.GetAllRoutes();
+		const auto& routes_to_draw = catalogue_.GetAllBuses();
 
 		map_renderer_.RenderMap(map_output, routes_to_draw);
 		answer_builder.Key("map"s).Value(map_output.str());

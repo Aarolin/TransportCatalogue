@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-enum class RouteType
+enum class BusType
 {
     Circle,
     Forward
@@ -19,7 +19,7 @@ struct Stop {
 
 };
 
-struct RouteInformation {
+struct BusInformation {
 
     size_t stops_count;
     size_t unique_stops_count;
@@ -28,10 +28,10 @@ struct RouteInformation {
 
 };
 
-struct Route {
+struct Bus {
 
-    std::string route_name;
-    RouteType route_type;
+    std::string bus_name;
+    BusType route_type;
     std::vector<Stop*> stops;
 
 };
