@@ -3,6 +3,7 @@
 namespace transport_catalogue {
 
     using namespace geo;
+    using namespace graph;
 
     void TransportCatalogue::AddStop(const std::string& stop, Coordinates coordinates) {
 
@@ -10,7 +11,8 @@ namespace transport_catalogue {
         auto& last_stop = stops_list_.back();
         stops_.insert({ last_stop.stop_name, &last_stop });
         stops_to_buses_.insert({ &last_stop, {} });
-
+        stops_to_indexes_.insert({ last_stop.stop_name, stops_to_indexes_.size() });
+        indexes_to_stops_.insert({ stops_to_indexes_.size() - 1, last_stop.stop_name });
     }
 
     void TransportCatalogue::AddBus(const std::string& bus, const std::vector<std::string>& stops, BusType route_type) {
@@ -138,8 +140,54 @@ namespace transport_catalogue {
     }
 
     const std::map<std::string_view, Bus*>& TransportCatalogue::GetAllBuses() const {
-
         return buses_;
     }
 
-}
+    size_t TransportCatalogue::ComputeVertexCount() const {
+        return stops_list_.size();
+    }
+
+    void TransportCatalogue::FillDirectedWeightedGraph(graph::DirectedWeightedGraph<double>& graph, RouteSettings route_settings) {
+
+        for (const auto& [stop_pair, distance] : stops_distances_) {
+
+            Edge<double> new_edge;
+            new_edge.from = stops_to_indexes_[stop_pair.first->stop_name];
+            new_edge.to = stops_to_indexes_[stop_pair.second->stop_name];
+            new_edge.weight = distance / route_settings.bus_velocity;
+            new_edge.weight += route_settings.bus_wait_time;
+            graph.AddEdge(new_edge);
+
+        }
+
+    }
+
+    std::optional<size_t> TransportCatalogue::GetVertexIndexByStopName(const std::string& stop) const {
+
+        if (stops_to_indexes_.count(stop) == 0) {
+            return std::nullopt;
+        }
+
+        return stops_to_indexes_.at(stop);
+    }
+
+    std::optional<std::string_view> TransportCatalogue::GetStopNameByVertex(size_t vertex_id) const {
+
+        if (indexes_to_stops_.count(vertex_id) == 0) {
+            return std::nullopt;
+        }
+
+        return indexes_to_stops_.at(vertex_id);
+    }
+
+    /*const graph::Edge<double>& TransportCatalogue::GetEdge(size_t edge_id) const {
+        return routes_graph_.GetEdge(edge_id);
+    }
+
+    const graph::DirectedWeightedGraph<double>& TransportCatalogue::GetDirectedWeightedGraph() const {
+        return routes_graph_;
+    }*/
+
+} // namespace trasport_catalogue
+
+

@@ -6,6 +6,7 @@ namespace reading_queries {
 	using namespace geo;
 	using namespace render;
 	using namespace transport_catalogue;
+	using namespace graph;
 
 	json::Document ReadQueries(std::istream& is) {
 		return json::Load(is);
@@ -141,14 +142,25 @@ namespace reading_queries {
 	}
 
 	render::MapSettings GetMapCustomizer(const json::Dict& requests) {
-
 		return render::MapSettings(requests.at("render_settings").AsDict());
-
 	}
 
-	JSONRequestBuilder::JSONRequestBuilder(const TransportCatalogue& catalogue, MapRenderer& renderer) 
+	RouteSettings GetRouteSettings(const json::Dict& requests) {
+
+		const auto& route_settings_dict = requests.at("routing_settings").AsDict();
+		int bus_wait_time = route_settings_dict.at("bus_wait_time").AsInt();
+		int bus_velocity = route_settings_dict.at("bus_velocity").AsInt();
+
+		return { bus_wait_time, bus_velocity };
+	}
+
+	JSONRequestBuilder::JSONRequestBuilder(const TransportCatalogue& catalogue, MapRenderer& renderer, 
+		const Router<double>& router, const graph::DirectedWeightedGraph<double>& routes_graph)
 		: catalogue_(catalogue),
-		map_renderer_(renderer) {
+		map_renderer_(renderer),
+		router_(router),
+		routes_graph_(routes_graph)
+		{
 
 	}
 
@@ -168,8 +180,15 @@ namespace reading_queries {
 
 			answer_builder.StartDict();
 
-			if (type_request == "Map") {
+			if (type_request == "Map"s) {
 				MakeMapResponse(answer_builder);
+			}
+			else if (type_request == "Route"s) {
+
+				const string& route_begin = map_stat_request.at("from"s).AsString();
+				const string& route_end = map_stat_request.at("to"s).AsString();
+				MakeRouteRequest(answer_builder, route_begin, route_end, map_requests);
+
 			}
 			else {
 
@@ -244,6 +263,45 @@ namespace reading_queries {
 
 		map_renderer_.RenderMap(map_output, routes_to_draw);
 		answer_builder.Key("map"s).Value(map_output.str());
+	}
+
+	void JSONRequestBuilder::MakeRouteRequest(json::Builder& answer_builder, const std::string& route_begin, const std::string& route_end, const json::Dict& map_requests) const {
+
+		std::optional<size_t> vertex_ind_route_begin = catalogue_.GetVertexIndexByStopName(route_begin);
+		std::optional<size_t> vertex_ind_route_end = catalogue_.GetVertexIndexByStopName(route_end);
+
+		if (!vertex_ind_route_begin || !vertex_ind_route_end) {
+
+			InsertErrorToResponse(answer_builder);
+			return;
+
+		}
+
+		auto route_info = router_.BuildRoute(*vertex_ind_route_begin, *vertex_ind_route_end);
+
+		if (!route_info) {
+
+			InsertErrorToResponse(answer_builder);
+			return;
+
+		}
+
+		answer_builder.Key("route"s).StartArray().StartDict();
+
+		for (graph::EdgeId edge_id : route_info->edges) {
+
+			auto edge = routes_graph_.GetEdge(edge_id);
+			size_t vertex_from = edge.from;
+			size_t vertex_to = edge.to;
+
+			std::optional<std::string_view> stop_name_from = catalogue_.GetStopNameByVertex(vertex_from);
+			std::optional<std::string_view> stop_name_to = catalogue_.GetStopNameByVertex(vertex_to);
+
+			answer_builder.Key(std::string(*stop_name_from)).Value(std::string(*stop_name_to));
+
+		}
+
+		answer_builder.EndDict().EndArray();
 	}
 
 }

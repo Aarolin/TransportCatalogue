@@ -36,6 +36,13 @@ struct Bus {
 
 };
 
+struct RouteSettings {
+
+    int bus_wait_time = 0;
+    int bus_velocity = 0;
+
+};
+
 struct StopsHasher {
 
     size_t operator()(std::pair<Stop*, Stop*> stops) const;
