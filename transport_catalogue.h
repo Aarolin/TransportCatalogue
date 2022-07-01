@@ -39,7 +39,7 @@ namespace transport_catalogue {
         const std::map<std::string_view, Bus*>& GetAllBuses() const;
 
         size_t ComputeVertexCount() const;
-        std::optional<size_t> GetVertexIndexByStopName(const std::string& stop) const;
+        size_t GetVertexIndexByStopName(std::string_view stop) const;
         std::optional<std::string_view> GetStopNameByVertex(size_t vertex_id) const;
 
         void FillDirectedWeightedGraph(graph::DirectedWeightedGraph<double>& graph, RouteSettings route_settings);
@@ -54,6 +54,18 @@ namespace transport_catalogue {
         std::unordered_map<std::size_t, std::string_view> indexes_to_stops_;
         std::deque<Stop> stops_list_;
         std::deque<Bus> bus_list_;
+
+        struct RouteEdge {
+
+            size_t from;
+            size_t to;
+
+            size_t distance;
+
+        };
+
+        std::vector<size_t> SplitRoute(const std::vector<Stop*>& bus_stops_list) const;
+        std::vector<RouteEdge> CreateRouteEdgesList(const Bus* bus, const std::vector<size_t>& bus_interval_distances) const;
     };
 
 
