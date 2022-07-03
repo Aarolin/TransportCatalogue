@@ -154,16 +154,6 @@ namespace reading_queries {
 		return { bus_wait_time, bus_velocity };
 	}
 
-	/*JSONRequestBuilder::JSONRequestBuilder(const TransportCatalogue& catalogue, MapRenderer& renderer, 
-		const Router<WayInfo>& router, const graph::DirectedWeightedGraph<WayInfo>& routes_graph)
-		: catalogue_(catalogue),
-		map_renderer_(renderer),
-		router_(router),
-		routes_graph_(routes_graph)
-		{
-
-	}*/
-
 	JSONRequestBuilder::JSONRequestBuilder(const TransportCatalogue& catalogue, MapRenderer& renderer,
 		const TransportRouter& transport_router) :
 		catalogue_(catalogue),

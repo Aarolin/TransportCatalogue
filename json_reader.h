@@ -46,8 +46,6 @@ namespace reading_queries {
 
 		const transport_catalogue::TransportCatalogue& catalogue_;
 		render::MapRenderer& map_renderer_;
-		/*const graph::Router<WayInfo>& router_;
-		const graph::DirectedWeightedGraph<WayInfo>& routes_graph_;*/
 		const TransportRouter& transport_router_;
 
 	};

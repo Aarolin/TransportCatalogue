@@ -43,7 +43,6 @@ namespace transport_catalogue {
         size_t GetStopId(std::string_view stop) const;
         std::string_view GetStopNameById(size_t vertex_id) const;
 
-        //void FillDirectedWeightedGraph(graph::DirectedWeightedGraph<WayInfo>& graph, RouteSettings route_settings);
 
     private:
 
@@ -55,39 +54,7 @@ namespace transport_catalogue {
         std::unordered_map<std::size_t, std::string_view> indexes_to_stops_;
         std::deque<Stop> stops_list_;
         std::deque<Bus> bus_list_;
-
-        /*struct RouteEdge {
-
-            size_t from;
-            size_t to;
-
-            size_t distance;
-
-        };
-
-        template <typename InputIt>
-        std::vector<size_t> SplitRoute(const InputIt first, const InputIt last) const;
-        std::vector<RouteEdge> BuildBeginEndRouteEdgesList(size_t stops_count, const std::vector<size_t>& bus_interval_distances) const;
-        std::vector<RouteEdge> BuildEndBeginRouteEdgesList(size_t stops_count, const std::vector<size_t>& bus_interval_distances) const;*/
     };
-
-    /*template <typename InputIt>
-    std::vector<size_t> TransportCatalogue::SplitRoute(const InputIt first, const InputIt last) const {
-
-        std::vector<size_t> result;
-
-        for (InputIt first_it = first, second_it = next(first); second_it != last; first_it++, second_it++) {
-
-            auto from = *first_it;
-            auto to = *second_it;
-
-            result.push_back(GetDistanceBetweenStops(from, to));
-
-        }
-
-        return result;
-
-    }*/
 
 }
 

@@ -146,49 +146,6 @@ namespace transport_catalogue {
         return stops_list_.size();
     }
 
-   /* void TransportCatalogue::FillDirectedWeightedGraph(graph::DirectedWeightedGraph<WayInfo>& graph, RouteSettings route_settings) {
-
-        double speed_for_calc = static_cast<double>(route_settings.bus_velocity) * 1000;
-        speed_for_calc /= static_cast<double>(60);
-
-        for (const auto& [name, ptr] : buses_) {
-
-            std::vector<size_t> bus_interval_distances = SplitRoute(ptr->stops.begin(), ptr->stops.end());
-            std::vector<TransportCatalogue::RouteEdge> route_edges = BuildBeginEndRouteEdgesList(ptr->stops.size(), bus_interval_distances);
-            
-            for (const auto& route_edge : route_edges) {
-
-                graph::Edge<WayInfo> graph_edge;
-                graph_edge.from = GetStopId(ptr->stops[route_edge.from]->stop_name);
-                graph_edge.to = GetStopId(ptr->stops[route_edge.to]->stop_name);
-                
-                double road_weight = (static_cast<double>(route_edge.distance) / speed_for_calc) + static_cast<double>(route_settings.bus_wait_time);
-                graph_edge.weight = { name, std::abs(static_cast<int>(route_edge.from) - static_cast<int>(route_edge.to)) , road_weight};
-                graph.AddEdge(graph_edge);
-            }
-
-            if (ptr->type == BusType::Forward) {
-
-                std::vector<size_t> reverse_bus_interval_distances = SplitRoute(ptr->stops.rbegin(), ptr->stops.rend());
-                std::vector<TransportCatalogue::RouteEdge> reverse_route_edges = BuildEndBeginRouteEdgesList(ptr->stops.size(), reverse_bus_interval_distances);
-
-                for (const auto& reverse_route_edge : reverse_route_edges) {
-
-                    graph::Edge<WayInfo> graph_edge;
-                    graph_edge.from = GetStopId(ptr->stops[reverse_route_edge.from]->stop_name);
-                    graph_edge.to = GetStopId(ptr->stops[reverse_route_edge.to]->stop_name);
-                    double road_weight = (static_cast<double>(reverse_route_edge.distance) / speed_for_calc) + static_cast<double>(route_settings.bus_wait_time);
-
-                    graph_edge.weight = {name, std::abs(static_cast<int>(reverse_route_edge.from) - static_cast<int>(reverse_route_edge.to)), road_weight};
-                    graph.AddEdge(graph_edge);
-                }
-
-            }
-
-        }
-
-    }*/
-
     size_t TransportCatalogue::GetStopId(std::string_view stop) const {
         return stops_to_indexes_.at(stop);
     }
@@ -196,46 +153,6 @@ namespace transport_catalogue {
     std::string_view TransportCatalogue::GetStopNameById(size_t vertex_id) const {
         return indexes_to_stops_.at(vertex_id);
     }
-
-    
-
-    /*std::vector<TransportCatalogue::RouteEdge> TransportCatalogue::BuildBeginEndRouteEdgesList(size_t stops_count, const std::vector<size_t>& bus_interval_distances) const {
-
-        std::vector<TransportCatalogue::RouteEdge> result;
-        
-        for (size_t i = 0; i < stops_count - 1; ++i) {
-
-            for (size_t j = i + 1; j < stops_count; ++j) {
-
-                size_t distance = std::accumulate(bus_interval_distances.begin() + i, bus_interval_distances.begin() + j, 0);
-                result.push_back({i, j, distance});
-
-            }
-
-        }
-
-        return result;
-    }
-
-    std::vector<TransportCatalogue::RouteEdge> TransportCatalogue::BuildEndBeginRouteEdgesList(size_t stops_count, const std::vector<size_t>& bus_interval_distances) const {
-
-        std::vector<TransportCatalogue::RouteEdge> result;
-
-        for (int from = stops_count - 1, i = 0; from > -1; --from, ++i) {
-
-            for (int to = from - 1, j = i + 1; to > -1; --to, ++j) {
-
-                size_t distance = std::accumulate(bus_interval_distances.begin() + i, bus_interval_distances.begin() + j, 0);
-                result.push_back({ static_cast<size_t>(from), static_cast<size_t>(to), distance });
-
-            }
-
-        }
-
-        return result;
-
-    }*/
-
 
 } // namespace trasport_catalogue
 
