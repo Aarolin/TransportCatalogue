@@ -2,6 +2,7 @@
 #include "request_handler.h"
 #include "graph.h"
 #include "router.h"
+#include "transport_router.h"
 
 #include <iostream>
 
@@ -23,13 +24,12 @@ int main() {
 	render::MapProjector projector(customizer.GetWidth(), customizer.GetHeight(), customizer.GetPadding());
 	render::MapRenderer map_renderer(customizer, projector);
 
-	DirectedWeightedGraph<double> routes_graph(catalogue.ComputeVertexCount());
+	TransportRouterBuilder transport_router_builder(catalogue);
+	transport_router_builder.FillGraph(GetRouteSettings(queries_map));
 
-	catalogue.FillDirectedWeightedGraph(routes_graph, GetRouteSettings(queries_map));
-	Router map_router(routes_graph);
+	TransportRouter transport_router = transport_router_builder.Build();
 
-
-	JSONRequestBuilder json_doc_builder(catalogue, map_renderer, map_router, routes_graph);
+	JSONRequestBuilder json_doc_builder(catalogue, map_renderer, transport_router);
 	RequestHandler handler(json_doc_builder);
 
 	handler.OutRequests(queries_map, std::cout);

@@ -31,7 +31,7 @@ struct BusInformation {
 struct Bus {
 
     std::string bus_name;
-    BusType route_type;
+    BusType type;
     std::vector<Stop*> stops;
 
 };
@@ -51,3 +51,15 @@ private:
 
     std::hash<Stop*> ptr_hasher_;
 };
+
+struct WayInfo {
+
+    std::string_view bus_name;
+    int stop_count;
+    double weight = 0.0;
+
+    bool operator<(const WayInfo& rhs) const;
+    bool operator>(const WayInfo& rhs) const;
+    WayInfo operator+(const WayInfo& rhs) const;
+};
+

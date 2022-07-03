@@ -1,6 +1,6 @@
 #pragma once
 
-#include "transport_catalogue.h"
+#include "transport_router.h"
 #include "json.h"
 #include "json_builder.h"
 #include "map_renderer.h"
@@ -29,8 +29,9 @@ namespace reading_queries {
 
 	public:
 
-		JSONRequestBuilder(const transport_catalogue::TransportCatalogue& catalogue, render::MapRenderer& renderer, 
-			const graph::Router<double>& router, const graph::DirectedWeightedGraph<double>& routes_graph);
+		
+		JSONRequestBuilder(const transport_catalogue::TransportCatalogue& catalogue, 
+			render::MapRenderer& renderer, const TransportRouter& transport_router);
 
 		json::Document MakeJSONResponseToRequest(const json::Dict& map_requests);
 
@@ -40,13 +41,14 @@ namespace reading_queries {
 		void MakeBusResponse(const std::string& bus_name, json::Builder& answer_builder) const;
 		void MakeStopResponse(const std::string& stop_name, json::Builder& answer_builder) const;
 		void MakeMapResponse(json::Builder& answer_builder);
-		void MakeRouteRequest(json::Builder& answer_builder, const std::string& route_begin, const std::string& route_end, const json::Dict& map_requests) const;
+		void MakeRouteRequest(json::Builder& answer_builder, const std::string& route_begin, const std::string& route_end, RouteSettings route_settings) const;
 		void InsertErrorToResponse(json::Builder& answer_builder) const;
 
 		const transport_catalogue::TransportCatalogue& catalogue_;
 		render::MapRenderer& map_renderer_;
-		const graph::Router<double>& router_;
-		const graph::DirectedWeightedGraph<double>& routes_graph_;
+		/*const graph::Router<WayInfo>& router_;
+		const graph::DirectedWeightedGraph<WayInfo>& routes_graph_;*/
+		const TransportRouter& transport_router_;
 
 	};
 

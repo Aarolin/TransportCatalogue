@@ -355,7 +355,7 @@ namespace render {
 		svg::Polyline route_line;
 		SetBusLineProperties(route_line, line_color, line_width);
 
-		if (route.route_type == BusType::Forward) {
+		if (route.type == BusType::Forward) {
 			BuildForwardBus(route_line, route.stops);
 		}
 		else {

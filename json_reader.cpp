@@ -154,13 +154,21 @@ namespace reading_queries {
 		return { bus_wait_time, bus_velocity };
 	}
 
-	JSONRequestBuilder::JSONRequestBuilder(const TransportCatalogue& catalogue, MapRenderer& renderer, 
-		const Router<double>& router, const graph::DirectedWeightedGraph<double>& routes_graph)
+	/*JSONRequestBuilder::JSONRequestBuilder(const TransportCatalogue& catalogue, MapRenderer& renderer, 
+		const Router<WayInfo>& router, const graph::DirectedWeightedGraph<WayInfo>& routes_graph)
 		: catalogue_(catalogue),
 		map_renderer_(renderer),
 		router_(router),
 		routes_graph_(routes_graph)
 		{
+
+	}*/
+
+	JSONRequestBuilder::JSONRequestBuilder(const TransportCatalogue& catalogue, MapRenderer& renderer,
+		const TransportRouter& transport_router) :
+		catalogue_(catalogue),
+		map_renderer_(renderer),
+		transport_router_(transport_router) {
 
 	}
 
@@ -170,6 +178,7 @@ namespace reading_queries {
 
 		json::Builder answer_builder;
 		answer_builder.StartArray();
+		const RouteSettings route_settings = GetRouteSettings(map_requests);
 
 		for (const json::Node& stat_request : stat_requests) {
 
@@ -187,7 +196,8 @@ namespace reading_queries {
 
 				const string& route_begin = map_stat_request.at("from"s).AsString();
 				const string& route_end = map_stat_request.at("to"s).AsString();
-				MakeRouteRequest(answer_builder, route_begin, route_end, map_requests);
+				
+				MakeRouteRequest(answer_builder, route_begin, route_end, route_settings);
 
 			}
 			else {
@@ -265,10 +275,10 @@ namespace reading_queries {
 		answer_builder.Key("map"s).Value(map_output.str());
 	}
 
-	void JSONRequestBuilder::MakeRouteRequest(json::Builder& answer_builder, const std::string& route_begin, const std::string& route_end, const json::Dict& map_requests) const {
+	void JSONRequestBuilder::MakeRouteRequest(json::Builder& answer_builder, const std::string& route_begin, const std::string& route_end, RouteSettings route_settings) const {
 
-		std::optional<size_t> vertex_ind_route_begin = catalogue_.GetVertexIndexByStopName(route_begin);
-		std::optional<size_t> vertex_ind_route_end = catalogue_.GetVertexIndexByStopName(route_end);
+		std::optional<size_t> vertex_ind_route_begin = catalogue_.GetStopId(route_begin);
+		std::optional<size_t> vertex_ind_route_end = catalogue_.GetStopId(route_end);
 
 		if (!vertex_ind_route_begin || !vertex_ind_route_end) {
 
@@ -276,8 +286,10 @@ namespace reading_queries {
 			return;
 
 		}
+		const auto& graph = transport_router_.GetGraph();
+		const auto& router = transport_router_.GetRouter();
 
-		auto route_info = router_.BuildRoute(*vertex_ind_route_begin, *vertex_ind_route_end);
+		auto route_info = router.BuildRoute(*vertex_ind_route_begin, *vertex_ind_route_end);
 
 		if (!route_info) {
 
@@ -286,22 +298,34 @@ namespace reading_queries {
 
 		}
 
-		answer_builder.Key("route"s).StartArray().StartDict();
+		answer_builder.Key("items"s).StartArray();
+		const std::vector<EdgeId>& route_edges = route_info->edges;
 
-		for (graph::EdgeId edge_id : route_info->edges) {
+		double total_time = 0.0;
 
-			auto edge = routes_graph_.GetEdge(edge_id);
-			size_t vertex_from = edge.from;
-			size_t vertex_to = edge.to;
+		for (EdgeId edge_id : route_edges) {
 
-			std::optional<std::string_view> stop_name_from = catalogue_.GetStopNameByVertex(vertex_from);
-			std::optional<std::string_view> stop_name_to = catalogue_.GetStopNameByVertex(vertex_to);
+			const auto& edge = graph.GetEdge(edge_id);
+			auto stop_name_from = catalogue_.GetStopNameById(edge.from);
 
-			answer_builder.Key(std::string(*stop_name_from)).Value(std::string(*stop_name_to));
+			answer_builder.StartDict();
+			answer_builder.Key("stop_name"s).Value(std::string(stop_name_from));
+			answer_builder.Key("time"s).Value(route_settings.bus_wait_time);
+			answer_builder.Key("type"s).Value("Wait"s);
+			answer_builder.EndDict();
 
+			answer_builder.StartDict();
+			answer_builder.Key("bus"s).Value(std::string(edge.weight.bus_name));
+			answer_builder.Key("span_count"s).Value(edge.weight.stop_count);
+			answer_builder.Key("time"s).Value(edge.weight.weight - static_cast<double>(route_settings.bus_wait_time));
+			answer_builder.Key("type"s).Value("Bus"s);
+			answer_builder.EndDict();
+			total_time += edge.weight.weight;
 		}
 
-		answer_builder.EndDict().EndArray();
+		answer_builder.EndArray();
+
+		answer_builder.Key("total_time"s).Value(total_time);
 	}
 
 }

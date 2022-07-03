@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <deque>
+#include <cmath>
 #include <functional>
 #include <map>
 #include <numeric>
@@ -38,11 +39,11 @@ namespace transport_catalogue {
 
         const std::map<std::string_view, Bus*>& GetAllBuses() const;
 
-        size_t ComputeVertexCount() const;
-        size_t GetVertexIndexByStopName(std::string_view stop) const;
-        std::optional<std::string_view> GetStopNameByVertex(size_t vertex_id) const;
+        size_t GetStopsCount() const;
+        size_t GetStopId(std::string_view stop) const;
+        std::string_view GetStopNameById(size_t vertex_id) const;
 
-        void FillDirectedWeightedGraph(graph::DirectedWeightedGraph<double>& graph, RouteSettings route_settings);
+        //void FillDirectedWeightedGraph(graph::DirectedWeightedGraph<WayInfo>& graph, RouteSettings route_settings);
 
     private:
 
@@ -55,7 +56,7 @@ namespace transport_catalogue {
         std::deque<Stop> stops_list_;
         std::deque<Bus> bus_list_;
 
-        struct RouteEdge {
+        /*struct RouteEdge {
 
             size_t from;
             size_t to;
@@ -64,9 +65,30 @@ namespace transport_catalogue {
 
         };
 
-        std::vector<size_t> SplitRoute(const std::vector<Stop*>& bus_stops_list) const;
-        std::vector<RouteEdge> CreateRouteEdgesList(const Bus* bus, const std::vector<size_t>& bus_interval_distances) const;
+        template <typename InputIt>
+        std::vector<size_t> SplitRoute(const InputIt first, const InputIt last) const;
+        std::vector<RouteEdge> BuildBeginEndRouteEdgesList(size_t stops_count, const std::vector<size_t>& bus_interval_distances) const;
+        std::vector<RouteEdge> BuildEndBeginRouteEdgesList(size_t stops_count, const std::vector<size_t>& bus_interval_distances) const;*/
     };
 
+    /*template <typename InputIt>
+    std::vector<size_t> TransportCatalogue::SplitRoute(const InputIt first, const InputIt last) const {
+
+        std::vector<size_t> result;
+
+        for (InputIt first_it = first, second_it = next(first); second_it != last; first_it++, second_it++) {
+
+            auto from = *first_it;
+            auto to = *second_it;
+
+            result.push_back(GetDistanceBetweenStops(from, to));
+
+        }
+
+        return result;
+
+    }*/
 
 }
+
+

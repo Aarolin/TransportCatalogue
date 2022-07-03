@@ -77,7 +77,7 @@ namespace transport_catalogue {
 
         }
 
-        if (finded_route->route_type == BusType::Forward) {
+        if (finded_route->type == BusType::Forward) {
 
             for (size_t i = stops_count - 1; i > 0; --i) {
                 route_length += GetDistanceBetweenStops(route_stops[i], route_stops[i - 1]);
@@ -88,7 +88,6 @@ namespace transport_catalogue {
             stops_count -= 1;
 
         }
-
 
         std::unordered_set<Stop*> unique_stops(route_stops.begin(), route_stops.end());
         size_t unique_stops_count = unique_stops.size();
@@ -143,76 +142,72 @@ namespace transport_catalogue {
         return buses_;
     }
 
-    size_t TransportCatalogue::ComputeVertexCount() const {
+    size_t TransportCatalogue::GetStopsCount() const {
         return stops_list_.size();
     }
 
-    void TransportCatalogue::FillDirectedWeightedGraph(graph::DirectedWeightedGraph<double>& graph, RouteSettings route_settings) {
+   /* void TransportCatalogue::FillDirectedWeightedGraph(graph::DirectedWeightedGraph<WayInfo>& graph, RouteSettings route_settings) {
+
+        double speed_for_calc = static_cast<double>(route_settings.bus_velocity) * 1000;
+        speed_for_calc /= static_cast<double>(60);
 
         for (const auto& [name, ptr] : buses_) {
 
-            std::vector<size_t> bus_interval_distances = SplitRoute(ptr->stops);
-            std::vector<TransportCatalogue::RouteEdge> route_edges = CreateRouteEdgesList(ptr, bus_interval_distances);
-
+            std::vector<size_t> bus_interval_distances = SplitRoute(ptr->stops.begin(), ptr->stops.end());
+            std::vector<TransportCatalogue::RouteEdge> route_edges = BuildBeginEndRouteEdgesList(ptr->stops.size(), bus_interval_distances);
+            
             for (const auto& route_edge : route_edges) {
 
-                graph::Edge<double> graph_edge;
-                graph_edge.from = GetVertexIndexByStopName(ptr->stops[route_edge.from]->stop_name);
-                graph_edge.to = GetVertexIndexByStopName(ptr->stops[route_edge.to]->stop_name);
-                graph_edge.weight = (route_edge.distance / route_settings.bus_velocity) + route_settings.bus_wait_time;
+                graph::Edge<WayInfo> graph_edge;
+                graph_edge.from = GetStopId(ptr->stops[route_edge.from]->stop_name);
+                graph_edge.to = GetStopId(ptr->stops[route_edge.to]->stop_name);
+                
+                double road_weight = (static_cast<double>(route_edge.distance) / speed_for_calc) + static_cast<double>(route_settings.bus_wait_time);
+                graph_edge.weight = { name, std::abs(static_cast<int>(route_edge.from) - static_cast<int>(route_edge.to)) , road_weight};
+                graph.AddEdge(graph_edge);
+            }
+
+            if (ptr->type == BusType::Forward) {
+
+                std::vector<size_t> reverse_bus_interval_distances = SplitRoute(ptr->stops.rbegin(), ptr->stops.rend());
+                std::vector<TransportCatalogue::RouteEdge> reverse_route_edges = BuildEndBeginRouteEdgesList(ptr->stops.size(), reverse_bus_interval_distances);
+
+                for (const auto& reverse_route_edge : reverse_route_edges) {
+
+                    graph::Edge<WayInfo> graph_edge;
+                    graph_edge.from = GetStopId(ptr->stops[reverse_route_edge.from]->stop_name);
+                    graph_edge.to = GetStopId(ptr->stops[reverse_route_edge.to]->stop_name);
+                    double road_weight = (static_cast<double>(reverse_route_edge.distance) / speed_for_calc) + static_cast<double>(route_settings.bus_wait_time);
+
+                    graph_edge.weight = {name, std::abs(static_cast<int>(reverse_route_edge.from) - static_cast<int>(reverse_route_edge.to)), road_weight};
+                    graph.AddEdge(graph_edge);
+                }
+
             }
 
         }
 
-    }
+    }*/
 
-    size_t TransportCatalogue::GetVertexIndexByStopName(std::string_view stop) const {
-
-        if (stops_to_indexes_.count(stop) == 0) {
-            return 0;
-        }
-
+    size_t TransportCatalogue::GetStopId(std::string_view stop) const {
         return stops_to_indexes_.at(stop);
     }
 
-    std::optional<std::string_view> TransportCatalogue::GetStopNameByVertex(size_t vertex_id) const {
-
-        if (indexes_to_stops_.count(vertex_id) == 0) {
-            return std::nullopt;
-        }
-
+    std::string_view TransportCatalogue::GetStopNameById(size_t vertex_id) const {
         return indexes_to_stops_.at(vertex_id);
     }
 
-    std::vector<size_t> TransportCatalogue::SplitRoute(const std::vector<Stop*>& bus_stops_list) const {
+    
 
-        std::vector<size_t> result;
-        
-        for (size_t i = 0; i < bus_stops_list.size() - 1; i++) {
-
-            Stop* from = bus_stops_list[i];
-            Stop* to = bus_stops_list[i + 1];
-
-            result.push_back(GetDistanceBetweenStops(from, to));
-
-        }
-
-        return result;
-
-    }
-
-    std::vector<TransportCatalogue::RouteEdge> TransportCatalogue::CreateRouteEdgesList(const Bus* bus, const std::vector<size_t>& bus_interval_distances) const {
+    /*std::vector<TransportCatalogue::RouteEdge> TransportCatalogue::BuildBeginEndRouteEdgesList(size_t stops_count, const std::vector<size_t>& bus_interval_distances) const {
 
         std::vector<TransportCatalogue::RouteEdge> result;
-        const std::vector<Stop*>& stops_list = bus->stops;
         
-        for (size_t i = 0; i < stops_list.size(); ++i) {
+        for (size_t i = 0; i < stops_count - 1; ++i) {
 
-            size_t distance = 0;
+            for (size_t j = i + 1; j < stops_count; ++j) {
 
-            for (size_t j = i + 1; j < stops_list_.size(); ++j) {
-
-                std::accumulate(bus_interval_distances.begin() + i, bus_interval_distances.begin() + j, distance);
+                size_t distance = std::accumulate(bus_interval_distances.begin() + i, bus_interval_distances.begin() + j, 0);
                 result.push_back({i, j, distance});
 
             }
@@ -221,13 +216,26 @@ namespace transport_catalogue {
 
         return result;
     }
-    /*const graph::Edge<double>& TransportCatalogue::GetEdge(size_t edge_id) const {
-        return routes_graph_.GetEdge(edge_id);
-    }
 
-    const graph::DirectedWeightedGraph<double>& TransportCatalogue::GetDirectedWeightedGraph() const {
-        return routes_graph_;
+    std::vector<TransportCatalogue::RouteEdge> TransportCatalogue::BuildEndBeginRouteEdgesList(size_t stops_count, const std::vector<size_t>& bus_interval_distances) const {
+
+        std::vector<TransportCatalogue::RouteEdge> result;
+
+        for (int from = stops_count - 1, i = 0; from > -1; --from, ++i) {
+
+            for (int to = from - 1, j = i + 1; to > -1; --to, ++j) {
+
+                size_t distance = std::accumulate(bus_interval_distances.begin() + i, bus_interval_distances.begin() + j, 0);
+                result.push_back({ static_cast<size_t>(from), static_cast<size_t>(to), distance });
+
+            }
+
+        }
+
+        return result;
+
     }*/
+
 
 } // namespace trasport_catalogue
 
