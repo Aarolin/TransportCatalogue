@@ -8,42 +8,23 @@ TransportRouterBuilder::TransportRouterBuilder(const transport_catalogue::Transp
 TransportRouterBuilder& TransportRouterBuilder::FillGraph(RouteSettings route_settings) {
 
 	const auto& bus_list = catalogue_.GetAllBuses();
-	double speed_for_calc = static_cast<double>(route_settings.bus_velocity) * 1000;
-	speed_for_calc /= static_cast<double>(60);
+	double bus_speed = static_cast<double>(route_settings.bus_velocity) * 1000;
+	bus_speed /= static_cast<double>(60);
 
 	for (const auto& [name, ptr] : bus_list) {
 
 		std::vector<size_t> bus_interval_distances = SplitRouteIntoIntervals(ptr->stops.begin(), ptr->stops.end());
-		std::vector<RouteEdge> route_edges = BuildBeginEndRouteEdgesList(ptr->stops.size(), bus_interval_distances);
+		std::vector<RouteEdge> route_edges = BuildForwardRouteEdgesList(ptr->stops.size(), bus_interval_distances);
 
-		for (const auto& route_edge : route_edges) {
-
-			graph::Edge<WayInfo> graph_edge;
-			graph_edge.from = GetVertexIndexByStopName(ptr->stops[route_edge.from]->stop_name);
-			graph_edge.to = GetVertexIndexByStopName(ptr->stops[route_edge.to]->stop_name);
-
-			double road_weight = (static_cast<double>(route_edge.distance) / speed_for_calc) + static_cast<double>(route_settings.bus_wait_time);
-			graph_edge.weight = { name, std::abs(static_cast<int>(route_edge.from) - static_cast<int>(route_edge.to)) , road_weight };
-			graph_.AddEdge(graph_edge);
-
-		}
+		EdgeQuery edge_query{ name, bus_speed, route_settings.bus_wait_time, ptr->stops };
+		AddRouteEdgesToGraph(route_edges, edge_query);
 
 		if (ptr->type == BusType::Forward) {
 
 			std::vector<size_t> reverse_bus_interval_distances = SplitRouteIntoIntervals(ptr->stops.rbegin(), ptr->stops.rend());
-			std::vector<RouteEdge> reverse_route_edges = BuildEndBeginRouteEdgesList(ptr->stops.size(), reverse_bus_interval_distances);
+			std::vector<RouteEdge> reverse_route_edges = BuildBackwardRouteEdgesList(ptr->stops.size(), reverse_bus_interval_distances);
 
-			for (const auto& reverse_route_edge : reverse_route_edges) {
-
-				graph::Edge<WayInfo> graph_edge;
-				graph_edge.from = GetVertexIndexByStopName(ptr->stops[reverse_route_edge.from]->stop_name);
-				graph_edge.to = GetVertexIndexByStopName(ptr->stops[reverse_route_edge.to]->stop_name);
-				double road_weight = (static_cast<double>(reverse_route_edge.distance) / speed_for_calc) + static_cast<double>(route_settings.bus_wait_time);
-
-				graph_edge.weight = { name, std::abs(static_cast<int>(reverse_route_edge.from) - static_cast<int>(reverse_route_edge.to)), road_weight };
-				graph_.AddEdge(graph_edge);
-			}
-
+			AddRouteEdgesToGraph(reverse_route_edges, edge_query);
 		}
 
 	}
@@ -54,7 +35,7 @@ TransportRouter TransportRouterBuilder::Build() const {
 	return { graph_ };
 }
 
-std::vector<RouteEdge> TransportRouterBuilder::BuildBeginEndRouteEdgesList(size_t stops_count, const std::vector<size_t>& bus_interval_distances) const {
+std::vector<RouteEdge> TransportRouterBuilder::BuildForwardRouteEdgesList(size_t stops_count, const std::vector<size_t>& bus_interval_distances) const {
 
 	std::vector<RouteEdge> result;
 
@@ -72,7 +53,7 @@ std::vector<RouteEdge> TransportRouterBuilder::BuildBeginEndRouteEdgesList(size_
 	return result;
 }
 
-std::vector<RouteEdge> TransportRouterBuilder::BuildEndBeginRouteEdgesList(size_t stops_count, const std::vector<size_t>& bus_interval_distances) const {
+std::vector<RouteEdge> TransportRouterBuilder::BuildBackwardRouteEdgesList(size_t stops_count, const std::vector<size_t>& bus_interval_distances) const {
 
 	std::vector<RouteEdge> result;
 
@@ -91,8 +72,26 @@ std::vector<RouteEdge> TransportRouterBuilder::BuildEndBeginRouteEdgesList(size_
 
 }
 
+void TransportRouterBuilder::AddRouteEdgesToGraph(const std::vector<RouteEdge>& route_edges_list, const EdgeQuery& edge_query) {
 
-size_t TransportRouterBuilder::GetVertexIndexByStopName(std::string_view stop_name) const {
+	const auto& bus_stops_list = edge_query.bus_stops_list;
+
+	for (const auto& route_edge : route_edges_list) {
+
+		graph::Edge<WayInfo> graph_edge;
+		graph_edge.from = GetVertexIdByStopName(bus_stops_list[route_edge.from]->stop_name);
+		graph_edge.to = GetVertexIdByStopName(bus_stops_list[route_edge.to]->stop_name);
+
+		double road_weight = (static_cast<double>(route_edge.distance) / edge_query.bus_speed) + static_cast<double>(edge_query.bus_wait_time);
+		graph_edge.weight = { edge_query.bus_name, std::abs(static_cast<int>(route_edge.from) - static_cast<int>(route_edge.to)) , road_weight };
+		graph_.AddEdge(graph_edge);
+
+	}
+
+}
+
+
+size_t TransportRouterBuilder::GetVertexIdByStopName(std::string_view stop_name) const {
 	return catalogue_.GetStopId(stop_name);
 }
 

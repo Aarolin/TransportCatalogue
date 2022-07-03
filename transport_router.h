@@ -28,10 +28,20 @@ private:
 
     template <typename InputIt>
     std::vector<size_t> SplitRouteIntoIntervals(const InputIt first, const InputIt last) const;
-    std::vector<RouteEdge> BuildBeginEndRouteEdgesList(size_t stops_count, const std::vector<size_t>& bus_interval_distances) const;
-    std::vector<RouteEdge> BuildEndBeginRouteEdgesList(size_t stops_count, const std::vector<size_t>& bus_interval_distances) const;
+    std::vector<RouteEdge> BuildForwardRouteEdgesList(size_t stops_count, const std::vector<size_t>& bus_interval_distances) const;
+    std::vector<RouteEdge> BuildBackwardRouteEdgesList(size_t stops_count, const std::vector<size_t>& bus_interval_distances) const;
 
-    size_t GetVertexIndexByStopName(std::string_view) const;
+    struct EdgeQuery {
+
+        std::string_view bus_name;
+        double bus_speed = 0.0;
+        int bus_wait_time = 0;
+        const std::vector<Stop*>& bus_stops_list;
+
+    };
+
+    void AddRouteEdgesToGraph(const std::vector<RouteEdge>& route_edges_list, const EdgeQuery& edge_query);
+    size_t GetVertexIdByStopName(std::string_view) const;
 
 };
 
@@ -39,12 +49,8 @@ class TransportRouter {
     friend TransportRouterBuilder;
 public:
 
-	//TransportRouter(const transport_catalogue::TransportCatalogue& catalogue, const graph::DirectedWeightedGraph<WayInfo>& graph_);
-
-	//void FillGraph(RouteSettings route_settings);
 	const graph::DirectedWeightedGraph<WayInfo>& GetGraph() const;
     const graph::Router<WayInfo>& GetRouter() const;
-
 
 private:
 

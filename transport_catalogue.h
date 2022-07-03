@@ -56,6 +56,6 @@ namespace transport_catalogue {
         std::deque<Bus> bus_list_;
     };
 
-}
+} // namespace transport_catalogue
 
 

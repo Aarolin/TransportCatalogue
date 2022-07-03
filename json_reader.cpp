@@ -318,4 +318,4 @@ namespace reading_queries {
 		answer_builder.Key("total_time"s).Value(total_time);
 	}
 
-}
+} // namespace reading_queries
