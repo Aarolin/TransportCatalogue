@@ -74,6 +74,10 @@ namespace render {
 		bus_label_offset_.y = bus_label_offset[1].AsDouble();
 	}
 
+	void MapSettings::SetBusLabelOffset(svg::Point p) {
+		bus_label_offset_ = std::move(p);
+	}
+
 	svg::Point MapSettings::GetBusLabelOffset() const {
 		return bus_label_offset_;
 	}
@@ -91,12 +95,20 @@ namespace render {
 		stop_label_offset_.y = stop_label_offset[1].AsDouble();
 	}
 
+	void MapSettings::SetStopLabelOffset(svg::Point p) {
+		stop_label_offset_ = std::move(p);
+	}
+
 	svg::Point MapSettings::GetStopLabelOffset() const {
 		return stop_label_offset_;
 	}
 
 	void MapSettings::SetUnderlayerColor(const json::Node& underlayer_color) {
 		underlayer_color_ = std::move(GetColorByNode(underlayer_color));
+	}
+
+	void MapSettings::SetUnderlayerColor(svg::Color color) {
+		underlayer_color_ = std::move(color);
 	}
 
 	const svg::Color& MapSettings::GetUnderlayerColor() const {
@@ -117,6 +129,10 @@ namespace render {
 			color_palette_.push_back(std::move(GetColorByNode(color)));
 		}
 
+	}
+
+	void MapSettings::SetColorPalette(std::vector<svg::Color> color_palette) {
+		color_palette_ = std::move(color_palette);
 	}
 
 	const std::vector<svg::Color>& MapSettings::GetColorPalette() const {
@@ -247,8 +263,8 @@ namespace render {
 		return (max_lat_ - latitude) * zoom_coef_ + padding_;
 	}
 
-	MapRenderer::MapRenderer(const MapSettings& customizer, MapProjector& projector) :
-		customizer_(customizer), projector_(projector) {
+	MapRenderer::MapRenderer(MapSettings customizer, MapProjector projector) :
+		customizer_(std::move(customizer)), projector_(std::move(projector)) {
 
 	}
 

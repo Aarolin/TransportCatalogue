@@ -34,11 +34,14 @@ namespace transport_catalogue {
         std::optional<BusInformation> GetBusInformation(const std::string& route) const;
         std::optional<const std::set<std::string_view>> GetStopInformation(const std::string& stop) const;
 
-        void SetDistanceBetweenStops(const std::string& stop_from, const std::string& stop_to, size_t distance);
+        //void SetDistanceBetweenStops(const std::string& stop_from, const std::string& stop_to, size_t distance);
+        void SetDistanceBetweenStops(std::string_view stop_from, std::string_view stop_to, size_t distance);
         size_t GetDistanceBetweenStops(Stop* stop_from, Stop* stop_to) const;
-
+        const std::unordered_map<std::pair<Stop*, Stop*>, size_t, StopsHasher>& GetDistancesListBetweenStops() const;
+        
         const std::map<std::string_view, Bus*>& GetAllBuses() const;
-
+        const std::deque<Stop>& GetAllStops() const;
+        
         size_t GetStopsCount() const;
         size_t GetStopId(std::string_view stop) const;
         std::string_view GetStopNameById(size_t vertex_id) const;
@@ -57,5 +60,3 @@ namespace transport_catalogue {
     };
 
 } // namespace transport_catalogue
-
-

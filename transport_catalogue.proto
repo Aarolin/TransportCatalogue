@@ -1,0 +1,59 @@
+syntax = "proto3";
+package transport_system;
+
+message Stop {
+    string name = 1;
+    double latitude = 2;
+    double longitude = 3;
+}
+
+message Bus {
+    string name = 1;
+    bool is_roundtrip = 2;
+    repeated int32 stop = 3;
+}
+
+message DistanceBeetwenStops {
+    int32 stop_from = 1;
+    int32 stop_to = 2;
+    int32 distance = 3;
+}
+
+message RoutingSettings {
+    int32 bus_wait_time = 1;
+    int32 bus_velocity = 2;
+}
+
+message LabelOffset {
+    double dx = 1;
+    double dy = 2;
+}
+
+message Color {
+    string color_name = 1;
+    repeated int32 rgb = 2;
+    double alpha = 3;
+}
+
+message RenderSettings {
+    double width = 1;
+    double height = 2;
+    double padding = 3;
+    double line_width = 4;
+    double stop_radius = 5;
+    uint32 bus_label_font_size = 6;
+    LabelOffset bus_label_offset = 7;
+    uint32 stop_label_font_size = 8;
+    LabelOffset stop_label_offset = 9;
+    Color underlayer_color = 10;
+    double underlayer_width = 11;
+    repeated Color color_palette = 12;
+}
+
+message TransportCatalogue {
+    repeated Bus bus = 1;
+    repeated Stop stop = 2;
+    repeated DistanceBeetwenStops distance_between_stops = 3;
+    RoutingSettings routing_settings = 4;
+    RenderSettings render_settings = 5;
+}

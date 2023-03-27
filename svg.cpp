@@ -4,10 +4,18 @@ namespace svg {
 
     using namespace std::literals;
 
+    bool Rgb::operator==(const Rgb& rhs) const {
+        return (red == rhs.red && green == rhs.green && blue == rhs.blue);
+    }
+
+    bool Rgba::operator==(const Rgba& rhs) const {
+        return (red == rhs.red && green == rhs.green && blue == rhs.blue && opacity == rhs.opacity);
+    }
+
     void Object::Render(const RenderContext& context) const {
         context.RenderIndent();
 
-        // Делегируем вывод тега своим подклассам
+        // Г„ГҐГ«ГҐГЈГЁГ°ГіГҐГ¬ ГўГ»ГўГ®Г¤ ГІГҐГЈГ  Г±ГўГ®ГЁГ¬ ГЇГ®Г¤ГЄГ«Г Г±Г±Г Г¬
         RenderObject(context);
 
         context.out << std::endl;
@@ -65,6 +73,10 @@ namespace svg {
     std::ostream& operator<<(std::ostream& os, const Color& color) {
         std::visit(ColorVisitor{ os }, color);
         return os;
+    }
+
+    bool Point::operator==(const Point& rhs) const {
+        return (x == rhs.x && y == rhs.y);
     }
     // ---------- Circle ----------
 

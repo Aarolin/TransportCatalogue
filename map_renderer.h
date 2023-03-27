@@ -16,6 +16,7 @@ namespace render {
 	class MapSettings {
 	public:
 		explicit MapSettings(const json::Dict&);
+		MapSettings() = default;
 
 		void SetWidth(double);
 		double GetWidth() const;
@@ -36,21 +37,29 @@ namespace render {
 		int GetBusLabelFontSize() const;
 
 		void SetBusLabelOffset(const json::Array&);
+		void SetBusLabelOffset(svg::Point p);
+
 		svg::Point GetBusLabelOffset() const;
 
 		void SetStopLabelFontSize(int);
 		int GetStopLabelFontSize() const;
 
 		void SetStopLabelOffset(const json::Array&);
+		void SetStopLabelOffset(svg::Point p);
+
 		svg::Point GetStopLabelOffset() const;
 
 		void SetUnderlayerColor(const json::Node&);
+		void SetUnderlayerColor(svg::Color);
+
 		const svg::Color& GetUnderlayerColor() const;
 
 		void SetUnderlayerWidth(double);
 		double GetUnderlayerWidth() const;
 
 		void SetColorPalette(const json::Array&);
+		void SetColorPalette(std::vector<svg::Color> color_palette);
+
 		const std::vector<svg::Color>& GetColorPalette() const;
 
 	private:
@@ -76,6 +85,7 @@ namespace render {
 	public:
 
 		MapProjector(double, double, double);
+		MapProjector() = default;
 
 		void CalcCoeficients(const std::deque<const Stop*>& all_stops);
 
@@ -109,8 +119,8 @@ namespace render {
 
 	class MapRenderer {
 	public:
-
-		MapRenderer(const MapSettings& customizer, MapProjector& projector);
+		MapRenderer() = default;
+		MapRenderer(MapSettings customizer, MapProjector projector);
 
 		void RenderMap(std::ostream& output, const std::map<std::string_view, Bus*>& routes_to_render);
 
@@ -148,8 +158,8 @@ namespace render {
 		std::map<std::string_view, const Stop*> GetAllStopMap(const std::map<std::string_view, Bus*>& buses_to_render) const;
 		std::deque<const Stop*> GetAllStopList(const std::map<std::string_view, Bus*>& buses_to_render) const;
 
-		const MapSettings& customizer_;
-		MapProjector& projector_;
+		MapSettings customizer_;
+		MapProjector projector_;
 		svg::Document draw_doc_;
 
 	};

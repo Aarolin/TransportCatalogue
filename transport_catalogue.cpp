@@ -109,7 +109,7 @@ namespace transport_catalogue {
 
     }
 
-    void TransportCatalogue::SetDistanceBetweenStops(const std::string& stop_from, const std::string& stop_to, size_t distance) {
+    /*void TransportCatalogue::SetDistanceBetweenStops(const std::string& stop_from, const std::string& stop_to, size_t distance) {
 
         if (stops_.count(stop_from) == 0 || stops_.count(stop_to) == 0) {
             return;
@@ -117,6 +117,16 @@ namespace transport_catalogue {
 
         stops_distances_.insert({ std::make_pair(stops_.at(stop_from), stops_.at(stop_to)), distance });
 
+    }*/
+    
+    void TransportCatalogue::SetDistanceBetweenStops(std::string_view stop_from, std::string_view stop_to, size_t distance) {
+        
+        if (stops_.count(stop_from) == 0 || stops_.count(stop_to) == 0) {
+            return;
+        }
+
+        stops_distances_.insert({ std::make_pair(stops_.at(stop_from), stops_.at(stop_to)), distance });
+        
     }
 
     size_t TransportCatalogue::GetDistanceBetweenStops(Stop* stop_from, Stop* stop_to) const {
@@ -141,7 +151,15 @@ namespace transport_catalogue {
     const std::map<std::string_view, Bus*>& TransportCatalogue::GetAllBuses() const {
         return buses_;
     }
+    
+    const std::deque<Stop>& TransportCatalogue::GetAllStops() const {
+        return stops_list_;
+    }
 
+    const std::unordered_map<std::pair<Stop*, Stop*>, size_t, StopsHasher>& TransportCatalogue::GetDistancesListBetweenStops() const {
+        return stops_distances_;
+    }
+    
     size_t TransportCatalogue::GetStopsCount() const {
         return stops_list_.size();
     }
@@ -155,5 +173,3 @@ namespace transport_catalogue {
     }
 
 } // namespace trasport_catalogue
-
-

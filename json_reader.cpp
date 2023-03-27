@@ -141,6 +141,14 @@ namespace reading_queries {
 
 	}
 
+	std::filesystem::path GetSerializeSettingsPath(const json::Dict& requests) {
+		
+		const json::Dict& serialization_settings = requests.at("serialization_settings"s).AsDict();
+		std::filesystem::path serialization_settings_path(serialization_settings.at("file"s).AsString());
+		return serialization_settings_path;
+
+	}
+
 	render::MapSettings GetMapCustomizer(const json::Dict& requests) {
 		return render::MapSettings(requests.at("render_settings").AsDict());
 	}
@@ -155,12 +163,14 @@ namespace reading_queries {
 	}
 
 	JSONRequestBuilder::JSONRequestBuilder(const TransportCatalogue& catalogue, MapRenderer& renderer,
-		const TransportRouter& transport_router) :
+		const TransportRouter& transport_router, const RouteSettings& route_settings) :
 		catalogue_(catalogue),
 		map_renderer_(renderer),
-		transport_router_(transport_router) {
+		transport_router_(transport_router),
+		route_settings_(route_settings) {
 
 	}
+
 
 	json::Document JSONRequestBuilder::MakeJSONResponseToRequest(const json::Dict& map_requests) {
 
@@ -168,7 +178,6 @@ namespace reading_queries {
 
 		json::Builder answer_builder;
 		answer_builder.StartArray();
-		const RouteSettings route_settings = GetRouteSettings(map_requests);
 
 		for (const json::Node& stat_request : stat_requests) {
 
@@ -186,8 +195,8 @@ namespace reading_queries {
 
 				const string& route_begin = map_stat_request.at("from"s).AsString();
 				const string& route_end = map_stat_request.at("to"s).AsString();
-				
-				MakeRouteRequest(answer_builder, route_begin, route_end, route_settings);
+
+				MakeRouteRequest(answer_builder, route_begin, route_end);
 
 			}
 			else {
@@ -265,7 +274,7 @@ namespace reading_queries {
 		answer_builder.Key("map"s).Value(map_output.str());
 	}
 
-	void JSONRequestBuilder::MakeRouteRequest(json::Builder& answer_builder, const std::string& route_begin, const std::string& route_end, RouteSettings route_settings) const {
+	void JSONRequestBuilder::MakeRouteRequest(json::Builder& answer_builder, const std::string& route_begin, const std::string& route_end) const {
 
 		std::optional<size_t> vertex_ind_route_begin = catalogue_.GetStopId(route_begin);
 		std::optional<size_t> vertex_ind_route_end = catalogue_.GetStopId(route_end);
@@ -300,14 +309,14 @@ namespace reading_queries {
 
 			answer_builder.StartDict();
 			answer_builder.Key("stop_name"s).Value(std::string(stop_name_from));
-			answer_builder.Key("time"s).Value(route_settings.bus_wait_time);
+			answer_builder.Key("time"s).Value(route_settings_.bus_wait_time);
 			answer_builder.Key("type"s).Value("Wait"s);
 			answer_builder.EndDict();
 
 			answer_builder.StartDict();
 			answer_builder.Key("bus"s).Value(std::string(edge.weight.bus_name));
 			answer_builder.Key("span_count"s).Value(edge.weight.stop_count);
-			answer_builder.Key("time"s).Value(edge.weight.weight - static_cast<double>(route_settings.bus_wait_time));
+			answer_builder.Key("time"s).Value(edge.weight.weight - static_cast<double>(route_settings_.bus_wait_time));
 			answer_builder.Key("type"s).Value("Bus"s);
 			answer_builder.EndDict();
 			total_time += edge.weight.weight;

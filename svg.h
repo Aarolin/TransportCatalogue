@@ -21,13 +21,13 @@ namespace svg {
         uint8_t red = 0;
         uint8_t green = 0;
         uint8_t blue = 0;
-
+        bool operator==(const Rgb& rhs) const;
     };
 
     struct Rgba {
         Rgba() = default;
         Rgba(uint8_t red, uint8_t green, uint8_t blue, double opacity);
-
+        bool operator==(const Rgba& rhs) const;
         uint8_t red = 0;
         uint8_t green = 0;
         uint8_t blue = 0;
@@ -87,13 +87,14 @@ namespace svg {
             : x(x)
             , y(y) {
         }
+        bool operator==(const Point&) const;
         double x = 0;
         double y = 0;
     };
 
     /*
-     * Вспомогательная структура, хранящая контекст для вывода SVG-документа с отступами.
-     * Хранит ссылку на поток вывода, текущее значение и шаг отступа при выводе элемента
+     * Г‚Г±ГЇГ®Г¬Г®ГЈГ ГІГҐГ«ГјГ­Г Гї Г±ГІГ°ГіГЄГІГіГ°Г , ГµГ°Г Г­ГїГ№Г Гї ГЄГ®Г­ГІГҐГЄГ±ГІ Г¤Г«Гї ГўГ»ГўГ®Г¤Г  SVG-Г¤Г®ГЄГіГ¬ГҐГ­ГІГ  Г± Г®ГІГ±ГІГіГЇГ Г¬ГЁ.
+     * Г•Г°Г Г­ГЁГІ Г±Г±Г»Г«ГЄГі Г­Г  ГЇГ®ГІГ®ГЄ ГўГ»ГўГ®Г¤Г , ГІГҐГЄГіГ№ГҐГҐ Г§Г­Г Г·ГҐГ­ГЁГҐ ГЁ ГёГ ГЈ Г®ГІГ±ГІГіГЇГ  ГЇГ°ГЁ ГўГ»ГўГ®Г¤ГҐ ГЅГ«ГҐГ¬ГҐГ­ГІГ 
      */
     struct RenderContext {
         RenderContext(std::ostream& out)
@@ -122,9 +123,9 @@ namespace svg {
     };
 
     /*
-     * Абстрактный базовый класс Object служит для унифицированного хранения
-     * конкретных тегов SVG-документа
-     * Реализует паттерн "Шаблонный метод" для вывода содержимого тега
+     * ГЂГЎГ±ГІГ°Г ГЄГІГ­Г»Г© ГЎГ Г§Г®ГўГ»Г© ГЄГ«Г Г±Г± Object Г±Г«ГіГ¦ГЁГІ Г¤Г«Гї ГіГ­ГЁГґГЁГ¶ГЁГ°Г®ГўГ Г­Г­Г®ГЈГ® ГµГ°Г Г­ГҐГ­ГЁГї
+     * ГЄГ®Г­ГЄГ°ГҐГІГ­Г»Гµ ГІГҐГЈГ®Гў SVG-Г¤Г®ГЄГіГ¬ГҐГ­ГІГ 
+     * ГђГҐГ Г«ГЁГ§ГіГҐГІ ГЇГ ГІГІГҐГ°Г­ "ГГ ГЎГ«Г®Г­Г­Г»Г© Г¬ГҐГІГ®Г¤" Г¤Г«Гї ГўГ»ГўГ®Г¤Г  Г±Г®Г¤ГҐГ°Г¦ГЁГ¬Г®ГЈГ® ГІГҐГЈГ 
      */
 
     template <typename Owner>
@@ -221,7 +222,7 @@ namespace svg {
     };
 
     /*
-     * Класс Circle моделирует элемент <circle> для отображения круга
+     * ГЉГ«Г Г±Г± Circle Г¬Г®Г¤ГҐГ«ГЁГ°ГіГҐГІ ГЅГ«ГҐГ¬ГҐГ­ГІ <circle> Г¤Г«Гї Г®ГІГ®ГЎГ°Г Г¦ГҐГ­ГЁГї ГЄГ°ГіГЈГ 
      * https://developer.mozilla.org/en-US/docs/Web/SVG/Element/circle
      */
     class Circle final : public Object, public PathProps<Circle> {
@@ -237,16 +238,16 @@ namespace svg {
     };
 
     /*
-     * Класс Polyline моделирует элемент <polyline> для отображения ломаных линий
+     * ГЉГ«Г Г±Г± Polyline Г¬Г®Г¤ГҐГ«ГЁГ°ГіГҐГІ ГЅГ«ГҐГ¬ГҐГ­ГІ <polyline> Г¤Г«Гї Г®ГІГ®ГЎГ°Г Г¦ГҐГ­ГЁГї Г«Г®Г¬Г Г­Г»Гµ Г«ГЁГ­ГЁГ©
      * https://developer.mozilla.org/en-US/docs/Web/SVG/Element/polyline
      */
     class Polyline final : public Object, public PathProps<Polyline> {
     public:
-        // Добавляет очередную вершину к ломаной линии
+        // Г„Г®ГЎГ ГўГ«ГїГҐГІ Г®Г·ГҐГ°ГҐГ¤Г­ГіГѕ ГўГҐГ°ГёГЁГ­Гі ГЄ Г«Г®Г¬Г Г­Г®Г© Г«ГЁГ­ГЁГЁ
         Polyline& AddPoint(Point point);
 
         /*
-         * Прочие методы и данные, необходимые для реализации элемента <polyline>
+         * ГЏГ°Г®Г·ГЁГҐ Г¬ГҐГІГ®Г¤Г» ГЁ Г¤Г Г­Г­Г»ГҐ, Г­ГҐГ®ГЎГµГ®Г¤ГЁГ¬Г»ГҐ Г¤Г«Гї Г°ГҐГ Г«ГЁГ§Г Г¶ГЁГЁ ГЅГ«ГҐГ¬ГҐГ­ГІГ  <polyline>
          */
     private:
         void RenderObject(const RenderContext& context) const override;
@@ -255,30 +256,30 @@ namespace svg {
     };
 
     /*
-     * Класс Text моделирует элемент <text> для отображения текста
+     * ГЉГ«Г Г±Г± Text Г¬Г®Г¤ГҐГ«ГЁГ°ГіГҐГІ ГЅГ«ГҐГ¬ГҐГ­ГІ <text> Г¤Г«Гї Г®ГІГ®ГЎГ°Г Г¦ГҐГ­ГЁГї ГІГҐГЄГ±ГІГ 
      * https://developer.mozilla.org/en-US/docs/Web/SVG/Element/text
      */
     class Text final : public Object, public PathProps<Text> {
     public:
-        // Задаёт координаты опорной точки (атрибуты x и y)
+        // Г‡Г Г¤Г ВёГІ ГЄГ®Г®Г°Г¤ГЁГ­Г ГІГ» Г®ГЇГ®Г°Г­Г®Г© ГІГ®Г·ГЄГЁ (Г ГІГ°ГЁГЎГіГІГ» x ГЁ y)
         Text& SetPosition(Point pos);
 
-        // Задаёт смещение относительно опорной точки (атрибуты dx, dy)
+        // Г‡Г Г¤Г ВёГІ Г±Г¬ГҐГ№ГҐГ­ГЁГҐ Г®ГІГ­Г®Г±ГЁГІГҐГ«ГјГ­Г® Г®ГЇГ®Г°Г­Г®Г© ГІГ®Г·ГЄГЁ (Г ГІГ°ГЁГЎГіГІГ» dx, dy)
         Text& SetOffset(Point offset);
 
-        // Задаёт размеры шрифта (атрибут font-size)
+        // Г‡Г Г¤Г ВёГІ Г°Г Г§Г¬ГҐГ°Г» ГёГ°ГЁГґГІГ  (Г ГІГ°ГЁГЎГіГІ font-size)
         Text& SetFontSize(uint32_t size);
 
-        // Задаёт название шрифта (атрибут font-family)
+        // Г‡Г Г¤Г ВёГІ Г­Г Г§ГўГ Г­ГЁГҐ ГёГ°ГЁГґГІГ  (Г ГІГ°ГЁГЎГіГІ font-family)
         Text& SetFontFamily(std::string font_family);
 
-        // Задаёт толщину шрифта (атрибут font-weight)
+        // Г‡Г Г¤Г ВёГІ ГІГ®Г«Г№ГЁГ­Гі ГёГ°ГЁГґГІГ  (Г ГІГ°ГЁГЎГіГІ font-weight)
         Text& SetFontWeight(std::string font_weight);
 
-        // Задаёт текстовое содержимое объекта (отображается внутри тега text)
+        // Г‡Г Г¤Г ВёГІ ГІГҐГЄГ±ГІГ®ГўГ®ГҐ Г±Г®Г¤ГҐГ°Г¦ГЁГ¬Г®ГҐ Г®ГЎГєГҐГЄГІГ  (Г®ГІГ®ГЎГ°Г Г¦Г ГҐГІГ±Гї ГўГ­ГіГІГ°ГЁ ГІГҐГЈГ  text)
         Text& SetData(std::string data);
 
-        // Прочие данные и методы, необходимые для реализации элемента <text>
+        // ГЏГ°Г®Г·ГЁГҐ Г¤Г Г­Г­Г»ГҐ ГЁ Г¬ГҐГІГ®Г¤Г», Г­ГҐГ®ГЎГµГ®Г¤ГЁГ¬Г»ГҐ Г¤Г«Гї Г°ГҐГ Г«ГЁГ§Г Г¶ГЁГЁ ГЅГ«ГҐГ¬ГҐГ­ГІГ  <text>
     private:
         void RenderObject(const RenderContext& context) const override;
 
@@ -296,10 +297,10 @@ namespace svg {
 
         void AddPtr(std::unique_ptr<Object>&& obj) override;
 
-        // Выводит в ostream svg-представление документа
+        // Г‚Г»ГўГ®Г¤ГЁГІ Гў ostream svg-ГЇГ°ГҐГ¤Г±ГІГ ГўГ«ГҐГ­ГЁГҐ Г¤Г®ГЄГіГ¬ГҐГ­ГІГ 
         void Render(std::ostream& out) const;
 
-        // Прочие методы и данные, необходимые для реализации класса Document
+        // ГЏГ°Г®Г·ГЁГҐ Г¬ГҐГІГ®Г¤Г» ГЁ Г¤Г Г­Г­Г»ГҐ, Г­ГҐГ®ГЎГµГ®Г¤ГЁГ¬Г»ГҐ Г¤Г«Гї Г°ГҐГ Г«ГЁГ§Г Г¶ГЁГЁ ГЄГ«Г Г±Г±Г  Document
     private:
         std::vector<std::unique_ptr<Object>> objects_;
     };

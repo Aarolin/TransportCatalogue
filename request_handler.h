@@ -14,4 +14,3 @@ private:
 
 	reading_queries::JSONRequestBuilder& request_responder_;
 };
-

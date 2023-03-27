@@ -1,4 +1,4 @@
-﻿#include "request_handler.h"
+#include "request_handler.h"
 
 using namespace reading_queries;
 
@@ -13,4 +13,3 @@ void RequestHandler::OutRequests(const json::Dict& map_requests, std::ostream& o
 	Print(request_responder_.MakeJSONResponseToRequest(map_requests), output);
 
 }
-

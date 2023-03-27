@@ -12,7 +12,7 @@ namespace geo {
     }
 
     bool Coordinates::operator<(const Coordinates& rhs) const {
-        return lat < rhs.lat&& lng < rhs.lng;
+        return lat < rhs.lat && lng < rhs.lng;
     }
 
 }

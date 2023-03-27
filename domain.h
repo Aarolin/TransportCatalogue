@@ -62,4 +62,3 @@ struct WayInfo {
     bool operator>(const WayInfo& rhs) const;
     WayInfo operator+(const WayInfo& rhs) const;
 };
-
