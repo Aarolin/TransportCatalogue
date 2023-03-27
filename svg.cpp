@@ -15,7 +15,6 @@ namespace svg {
     void Object::Render(const RenderContext& context) const {
         context.RenderIndent();
 
-        // Äåëåãèðóåì âûâîä òåãà ñâîèì ïîäêëàññàì
         RenderObject(context);
 
         context.out << std::endl;

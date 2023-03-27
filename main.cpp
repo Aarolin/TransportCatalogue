@@ -9,39 +9,6 @@
 
 using namespace std::literals;
 
-void TestSerializeRenderSettings(std::filesystem::path& path, const render::MapSettings& source_render_customizer) {
-
-    {
-        std::ofstream output(path);
-        transport_system::TransportCatalogue catalogue_to_serialize;
-        SerializeRenderSettings(catalogue_to_serialize, source_render_customizer);
-        catalogue_to_serialize.SerializeToOstream(&output);
-    }
-    
-    {
-        std::ifstream input(path);
-        transport_system::TransportCatalogue catalogue_to_deserialize;
-        catalogue_to_deserialize.ParseFromIstream(&input);
-        render::MapSettings render_customizer;
-        DeserializeRenderSettings(render_customizer, catalogue_to_deserialize);
-        assert(render_customizer.GetWidth() == source_render_customizer.GetWidth());
-        assert(render_customizer.GetHeight() == source_render_customizer.GetHeight());
-        assert(render_customizer.GetPadding() == source_render_customizer.GetPadding());
-        assert(render_customizer.GetLineWidth() == source_render_customizer.GetLineWidth());
-        assert(render_customizer.GetStopRadius() == source_render_customizer.GetStopRadius());
-        assert(render_customizer.GetBusLabelFontSize() == source_render_customizer.GetBusLabelFontSize());
-        assert(render_customizer.GetStopLabelFontSize() == source_render_customizer.GetStopLabelFontSize());
-        assert(render_customizer.GetUnderlayerWidth() == source_render_customizer.GetUnderlayerWidth());
-        assert(render_customizer.GetBusLabelOffset() == source_render_customizer.GetBusLabelOffset());
-        assert(render_customizer.GetStopLabelOffset() == source_render_customizer.GetStopLabelOffset());
-        assert(render_customizer.GetUnderlayerColor() == source_render_customizer.GetUnderlayerColor());
-        assert(render_customizer.GetColorPalette() == source_render_customizer.GetColorPalette());
-
-    } 
-
-}
-
-
 void PrintUsage(std::ostream& stream = std::cerr) {
     stream << "Usage: transport_catalogue [make_base|process_requests]\n"sv;
 }

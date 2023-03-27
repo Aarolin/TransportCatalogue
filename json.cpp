@@ -135,7 +135,6 @@ namespace json {
         Node LoadNumber(std::istream& input) {
             std::string parsed_num;
 
-            // Ñ÷èòûâàåò â parsed_num î÷åðåäíîé ñèìâîë èç input
             auto read_char = [&parsed_num, &input] {
                 parsed_num += static_cast<char>(input.get());
                 if (!input) {
@@ -143,7 +142,6 @@ namespace json {
                 }
             };
 
-            // Ñ÷èòûâàåò îäíó èëè áîëåå öèôð â parsed_num èç input
             auto read_digits = [&input, read_char] {
                 if (!std::isdigit(input.peek())) {
                     throw ParsingError("A digit is expected"s);
@@ -156,10 +154,8 @@ namespace json {
             if (input.peek() == '-') {
                 read_char();
             }
-            // Ïàðñèì öåëóþ ÷àñòü ÷èñëà
             if (input.peek() == '0') {
                 read_char();
-                // Ïîñëå 0 â JSON íå ìîãóò èäòè äðóãèå öèôðû
             }
             else {
                 read_digits();
@@ -173,7 +169,6 @@ namespace json {
                 is_int = false;
             }
 
-            // Ïàðñèì ýêñïîíåíöèàëüíóþ ÷àñòü ÷èñëà
             if (int ch = input.peek(); ch == 'e' || ch == 'E') {
                 read_char();
                 if (ch = input.peek(); ch == '+' || ch == '-') {
@@ -185,13 +180,11 @@ namespace json {
 
             try {
                 if (is_int) {
-                    // Ñíà÷àëà ïðîáóåì ïðåîáðàçîâàòü ñòðîêó â int
                     try {
                         return std::stoi(parsed_num);
                     }
                     catch (...) {
-                        // Â ñëó÷àå íåóäà÷è, íàïðèìåð, ïðè ïåðåïîëíåíèè
-                        // êîä íèæå ïîïðîáóåò ïðåîáðàçîâàòü ñòðîêó â double
+
                     }
                 }
                 return std::stod(parsed_num);
@@ -214,12 +207,6 @@ namespace json {
             case '"':
                 return LoadString(input);
             case 't':
-                // Àòðèáóò [[fallthrough]] (ïðîâàëèòüñÿ) íè÷åãî íå äåëàåò, è ÿâëÿåòñÿ
-                // ïîäñêàçêîé êîìïèëÿòîðó è ÷åëîâåêó, ÷òî çäåñü ïðîãðàììèñò ÿâíî çàäóìûâàë
-                // ðàçðåøèòü ïåðåõîä ê èíñòðóêöèè ñëåäóþùåé âåòêè case, à íå ñëó÷àéíî çàáûë
-                // íàïèñàòü break, return èëè throw.
-                // Â äàííîì ñëó÷àå, âñòðåòèâ t èëè f, ïåðåõîäèì ê ïîïûòêå ïàðñèíãà
-                // ëèòåðàëîâ true ëèáî false
                 [[fallthrough]];
             case 'f':
                 input.putback(c);
@@ -267,7 +254,6 @@ namespace json {
                     out << "\\n"sv;
                     break;
                 case '"':
-                    // Ñèìâîëû " è \ âûâîäÿòñÿ êàê \" èëè \\, ñîîòâåòñòâåííî
                     [[fallthrough]];
                 case '\\':
                     out.put('\\');
@@ -290,10 +276,6 @@ namespace json {
             ctx.out << "null"sv;
         }
 
-        // Â ñïåöèàëèçàöè øàáëîíà PrintValue äëÿ òèïà bool ïàðàìåòð value ïåðåäà¸òñÿ
-        // ïî êîíñòàíòíîé ññûëêå, êàê è â îñíîâíîì øàáëîíå.
-        // Â êà÷åñòâå àëüòåðíàòèâû ìîæíî èñïîëüçîâàòü ïåðåãðóçêó:
-        // void PrintValue(bool value, const PrintContext& ctx);
         template <>
         void PrintValue<bool>(const bool& value, const PrintContext& ctx) {
             ctx.out << (value ? "true"sv : "false"sv);

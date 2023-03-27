@@ -34,7 +34,6 @@ namespace transport_catalogue {
         std::optional<BusInformation> GetBusInformation(const std::string& route) const;
         std::optional<const std::set<std::string_view>> GetStopInformation(const std::string& stop) const;
 
-        //void SetDistanceBetweenStops(const std::string& stop_from, const std::string& stop_to, size_t distance);
         void SetDistanceBetweenStops(std::string_view stop_from, std::string_view stop_to, size_t distance);
         size_t GetDistanceBetweenStops(Stop* stop_from, Stop* stop_to) const;
         const std::unordered_map<std::pair<Stop*, Stop*>, size_t, StopsHasher>& GetDistancesListBetweenStops() const;

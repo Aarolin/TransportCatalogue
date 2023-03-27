@@ -109,16 +109,6 @@ namespace transport_catalogue {
 
     }
 
-    /*void TransportCatalogue::SetDistanceBetweenStops(const std::string& stop_from, const std::string& stop_to, size_t distance) {
-
-        if (stops_.count(stop_from) == 0 || stops_.count(stop_to) == 0) {
-            return;
-        }
-
-        stops_distances_.insert({ std::make_pair(stops_.at(stop_from), stops_.at(stop_to)), distance });
-
-    }*/
-    
     void TransportCatalogue::SetDistanceBetweenStops(std::string_view stop_from, std::string_view stop_to, size_t distance) {
         
         if (stops_.count(stop_from) == 0 || stops_.count(stop_to) == 0) {

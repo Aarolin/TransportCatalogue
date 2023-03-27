@@ -92,10 +92,6 @@ namespace svg {
         double y = 0;
     };
 
-    /*
-     * Âñïîìîãàòåëüíàÿ ñòðóêòóðà, õðàíÿùàÿ êîíòåêñò äëÿ âûâîäà SVG-äîêóìåíòà ñ îòñòóïàìè.
-     * Õðàíèò ññûëêó íà ïîòîê âûâîäà, òåêóùåå çíà÷åíèå è øàã îòñòóïà ïðè âûâîäå ýëåìåíòà
-     */
     struct RenderContext {
         RenderContext(std::ostream& out)
             : out(out) {
@@ -121,12 +117,6 @@ namespace svg {
         int indent_step = 0;
         int indent = 0;
     };
-
-    /*
-     * Àáñòðàêòíûé áàçîâûé êëàññ Object ñëóæèò äëÿ óíèôèöèðîâàííîãî õðàíåíèÿ
-     * êîíêðåòíûõ òåãîâ SVG-äîêóìåíòà
-     * Ðåàëèçóåò ïàòòåðí "Øàáëîííûé ìåòîä" äëÿ âûâîäà ñîäåðæèìîãî òåãà
-     */
 
     template <typename Owner>
     class PathProps {
@@ -221,10 +211,6 @@ namespace svg {
         virtual ~Drawable() = default;
     };
 
-    /*
-     * Êëàññ Circle ìîäåëèðóåò ýëåìåíò <circle> äëÿ îòîáðàæåíèÿ êðóãà
-     * https://developer.mozilla.org/en-US/docs/Web/SVG/Element/circle
-     */
     class Circle final : public Object, public PathProps<Circle> {
     public:
         Circle& SetCenter(Point center);
@@ -237,49 +223,30 @@ namespace svg {
         double radius_ = 1.0;
     };
 
-    /*
-     * Êëàññ Polyline ìîäåëèðóåò ýëåìåíò <polyline> äëÿ îòîáðàæåíèÿ ëîìàíûõ ëèíèé
-     * https://developer.mozilla.org/en-US/docs/Web/SVG/Element/polyline
-     */
     class Polyline final : public Object, public PathProps<Polyline> {
     public:
-        // Äîáàâëÿåò î÷åðåäíóþ âåðøèíó ê ëîìàíîé ëèíèè
         Polyline& AddPoint(Point point);
 
-        /*
-         * Ïðî÷èå ìåòîäû è äàííûå, íåîáõîäèìûå äëÿ ðåàëèçàöèè ýëåìåíòà <polyline>
-         */
     private:
         void RenderObject(const RenderContext& context) const override;
 
         std::vector<Point> polyline_;
     };
 
-    /*
-     * Êëàññ Text ìîäåëèðóåò ýëåìåíò <text> äëÿ îòîáðàæåíèÿ òåêñòà
-     * https://developer.mozilla.org/en-US/docs/Web/SVG/Element/text
-     */
     class Text final : public Object, public PathProps<Text> {
     public:
-        // Çàäà¸ò êîîðäèíàòû îïîðíîé òî÷êè (àòðèáóòû x è y)
         Text& SetPosition(Point pos);
 
-        // Çàäà¸ò ñìåùåíèå îòíîñèòåëüíî îïîðíîé òî÷êè (àòðèáóòû dx, dy)
         Text& SetOffset(Point offset);
 
-        // Çàäà¸ò ðàçìåðû øðèôòà (àòðèáóò font-size)
         Text& SetFontSize(uint32_t size);
 
-        // Çàäà¸ò íàçâàíèå øðèôòà (àòðèáóò font-family)
         Text& SetFontFamily(std::string font_family);
 
-        // Çàäà¸ò òîëùèíó øðèôòà (àòðèáóò font-weight)
         Text& SetFontWeight(std::string font_weight);
 
-        // Çàäà¸ò òåêñòîâîå ñîäåðæèìîå îáúåêòà (îòîáðàæàåòñÿ âíóòðè òåãà text)
         Text& SetData(std::string data);
 
-        // Ïðî÷èå äàííûå è ìåòîäû, íåîáõîäèìûå äëÿ ðåàëèçàöèè ýëåìåíòà <text>
     private:
         void RenderObject(const RenderContext& context) const override;
 
@@ -294,13 +261,10 @@ namespace svg {
 
     class Document : public ObjectContainer {
     public:
-
         void AddPtr(std::unique_ptr<Object>&& obj) override;
 
-        // Âûâîäèò â ostream svg-ïðåäñòàâëåíèå äîêóìåíòà
         void Render(std::ostream& out) const;
 
-        // Ïðî÷èå ìåòîäû è äàííûå, íåîáõîäèìûå äëÿ ðåàëèçàöèè êëàññà Document
     private:
         std::vector<std::unique_ptr<Object>> objects_;
     };
