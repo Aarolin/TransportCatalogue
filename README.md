@@ -30,6 +30,7 @@ Protobuf 3.21.7 и выше
 <details>
     <summary> Пример корректного файла make_base.json:</summary>
 ```json 
+
   {
       "serialization_settings": {
           "file": "transport_catalogue.db"
@@ -199,6 +200,7 @@ Protobuf 3.21.7 и выше
           }
       ]
   }
+  
 ```
 </details>
 
