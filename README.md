@@ -29,7 +29,7 @@ Protobuf 3.21.7 и выше
 Программа сформирует двоичный файл, в котором будет сохранен транспортный каталог.\
 <details>
     <summary> Пример корректного файла make_base.json:</summary>
-```json
+```json 
   {
       "serialization_settings": {
           "file": "transport_catalogue.db"
@@ -243,7 +243,7 @@ Protobuf 3.21.7 и выше
 
 ### Пример ответа на запросы: ###
 <details>
-```json
+```json 
   [
       {
           "curvature": 1.60481,
@@ -303,6 +303,5 @@ Protobuf 3.21.7 и выше
           "request_id": 1359372752
       }
   ]
-  
 ```
 </details>
